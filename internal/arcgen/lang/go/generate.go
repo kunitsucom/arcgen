@@ -101,7 +101,8 @@ func extractTableNameFromCommentGroup(commentGroup *ast.CommentGroup) string {
 			return matches[util.RegexIndexTableName.Index]
 		}
 	}
-	return fmt.Sprintf("ERROR: TABLE NAME IN COMMENT `// \"%s\": table: *` NOT FOUND: comment=%q", config.ColumnTagGo(), commentGroup.Text())
+	logs.Debug.Printf("WARN: table name in comment not found: `// \"%s\": table: *`: comment=%q", config.ColumnTagGo(), commentGroup.Text())
+	return ""
 }
 
 //nolint:funlen
@@ -112,52 +113,54 @@ func generateASTFile(packageName string, structName string, tableName string, pr
 			Name: packageName,
 		},
 		// methods
-		Decls: []ast.Decl{
-			&ast.FuncDecl{
-				Recv: &ast.FieldList{
-					List: []*ast.Field{
-						{
-							Names: []*ast.Ident{
-								{
-									Name: "s",
-								},
-							},
-							Type: &ast.StarExpr{
-								X: &ast.Ident{
-									Name: structName, // MEMO: struct name
-								},
-							},
-						},
-					},
-				},
-				Name: &ast.Ident{
-					Name: prefixGlobal + "TableName",
-				},
-				Type: &ast.FuncType{
-					Params: &ast.FieldList{},
-					Results: &ast.FieldList{
-						List: []*ast.Field{
+		Decls: []ast.Decl{},
+	}
+
+	if tableName != "" {
+		file.Decls = append(file.Decls, &ast.FuncDecl{
+			Recv: &ast.FieldList{
+				List: []*ast.Field{
+					{
+						Names: []*ast.Ident{
 							{
-								Type: &ast.Ident{
-									Name: "string",
-								},
+								Name: "s",
 							},
 						},
-					},
-				},
-				Body: &ast.BlockStmt{
-					List: []ast.Stmt{
-						&ast.ReturnStmt{
-							Results: []ast.Expr{
-								&ast.Ident{
-									Name: strconv.Quote(tableName),
-								},
+						Type: &ast.StarExpr{
+							X: &ast.Ident{
+								Name: structName, // MEMO: struct name
 							},
 						},
 					},
 				},
 			},
-		},
+			Name: &ast.Ident{
+				Name: prefixGlobal + "TableName",
+			},
+			Type: &ast.FuncType{
+				Params: &ast.FieldList{},
+				Results: &ast.FieldList{
+					List: []*ast.Field{
+						{
+							Type: &ast.Ident{
+								Name: "string",
+							},
+						},
+					},
+				},
+			},
+			Body: &ast.BlockStmt{
+				List: []ast.Stmt{
+					&ast.ReturnStmt{
+						Results: []ast.Expr{
+							&ast.Ident{
+								Name: strconv.Quote(tableName),
+							},
+						},
+					},
+				},
+			},
+		})
 	}
 
 	file.Decls = append(file.Decls, generateASTColumnMethods(structName, prefixGlobal, prefixColumn, columnNames)...)
