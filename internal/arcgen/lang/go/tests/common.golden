@@ -27,3 +27,27 @@ func (s *User) GetColumnName_Email() string {
 func (s *User) GetColumnName_Age() string {
 	return "Age"
 }
+
+func (s *Users) GetTableName() string {
+	return "`Users`"
+}
+
+func (s *Users) GetColumnNames() []string {
+	return []string{"Id", "Name", "Email", "Age"}
+}
+
+func (s *Users) GetColumnName_Id() string {
+	return "Id"
+}
+
+func (s *Users) GetColumnName_Name() string {
+	return "Name"
+}
+
+func (s *Users) GetColumnName_Email() string {
+	return "Email"
+}
+
+func (s *Users) GetColumnName_Age() string {
+	return "Age"
+}

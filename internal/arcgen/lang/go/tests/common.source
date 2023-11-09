@@ -17,8 +17,9 @@ type (
 		Ignore string `dbtest:"-"`
 	}
 
-	// dbtest: table: `SliceUsers`
-	SliceUser []*User
+	// Users is a slice of User.
+	//
+	Users []*User
 
 	// dbtest: table: `InvalidUsers`
 	InvalidUser struct {

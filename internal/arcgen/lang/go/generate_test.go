@@ -3,8 +3,11 @@ package arcgengo
 
 import (
 	"context"
+	"io"
+	"os"
 	"testing"
 
+	"github.com/kunitsucom/util.go/testing/assert"
 	"github.com/kunitsucom/util.go/testing/require"
 
 	"github.com/kunitsucom/arcgen/internal/config"
@@ -28,6 +31,22 @@ func TestGenerate(t *testing.T) {
 
 		fileSuffix = ".source"
 		require.NoError(t, Generate(ctx, config.Source()))
+
+		{
+			expectedFile, err := os.Open("tests/common.golden")
+			require.NoError(t, err)
+			expectedBytes, err := io.ReadAll(expectedFile)
+			require.NoError(t, err)
+			expected := string(expectedBytes)
+
+			actualFile, err := os.Open("tests/common.dbtest.gen.source")
+			require.NoError(t, err)
+			actualBytes, err := io.ReadAll(actualFile)
+			require.NoError(t, err)
+			actual := string(actualBytes)
+
+			assert.Equal(t, expected, actual)
+		}
 	})
 
 	t.Run("failure,no.errsource", func(t *testing.T) {
