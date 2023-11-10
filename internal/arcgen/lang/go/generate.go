@@ -21,7 +21,7 @@ import (
 	"github.com/kunitsucom/arcgen/internal/logs"
 )
 
-//nolint:cyclop
+//nolint:cyclop,funlen
 func Generate(ctx context.Context, src string) error {
 	arcSrcSets, err := parse(ctx, src)
 	if err != nil {
@@ -159,7 +159,7 @@ func appendAST(file *ast.File, structName string, tableName string, prefixGlobal
 
 	file.Decls = append(file.Decls, generateASTColumnMethods(structName, prefixGlobal, prefixColumn, columnNames)...)
 
-	return
+	return //nolint:gosimple
 }
 
 //nolint:funlen
