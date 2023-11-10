@@ -1,0 +1,36 @@
+package main
+
+type (
+	// User is a user.
+	//
+	// dbtest: table: `Users`
+	User struct {
+		// ID is a user ID.
+		ID string     `dbtest:"Id"`
+		// Name is a user name.
+		Name string   `dbtest:"Name"`
+		// Email is a user email.
+		Email string  `dbtest:"Email"`
+		// Age is a user age.
+		Age int       `dbtest:"Age"`
+		// Ignore is a ignore field.
+		Ignore string `dbtest:"-"`
+	}
+
+	// Users is a slice of User.
+	//
+	// dbtest: table: `Users`
+	Users []*User
+
+	// dbtest: table: `InvalidUsers`
+	InvalidUser struct {
+		ID string
+	}
+
+	// Group is a group.
+	//
+	Group struct {
+		ID string   `dbtest:"Id"`
+		Name string `dbtest:"Name"`
+	}
+)

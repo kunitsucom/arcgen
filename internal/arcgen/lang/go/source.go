@@ -12,16 +12,21 @@ import (
 
 type (
 	ARCSource struct {
-		Position token.Position
-		Package  *ast.Ident
+		Source  token.Position // TODO: Unnecessary?
+		Package *ast.Ident
 		// TypeSpec is used to guess the table name if the CREATE TABLE annotation is not found.
 		TypeSpec *ast.TypeSpec
 		// StructType is used to determine the column name. If the tag specified by --column-tag-go is not found, the field name is used.
 		StructType   *ast.StructType
 		CommentGroup *ast.CommentGroup
 	}
-	ARCSourceSet  []*ARCSource
-	ARCSourceSets []ARCSourceSet
+	ARCSourceSet struct {
+		Source      token.Position
+		Filename    string
+		PackageName string
+		ARCSources  []*ARCSource
+	}
+	ARCSourceSets []*ARCSourceSet
 )
 
 //nolint:gochecknoglobals

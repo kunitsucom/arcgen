@@ -1,0 +1,10 @@
+package main
+
+type (
+    // ReadOnly is a struct.
+    //
+    // dbtest: table: ReadOnly
+    ReadOnly struct {
+        Name string `dbtest:"ReadOnly"`
+    }
+)
