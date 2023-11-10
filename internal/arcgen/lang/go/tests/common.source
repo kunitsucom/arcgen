@@ -19,10 +19,18 @@ type (
 
 	// Users is a slice of User.
 	//
+	// dbtest: table: `Users`
 	Users []*User
 
 	// dbtest: table: `InvalidUsers`
 	InvalidUser struct {
 		ID string
+	}
+
+	// Group is a group.
+	//
+	Group struct {
+		ID string   `dbtest:"Id"`
+		Name string `dbtest:"Name"`
 	}
 )

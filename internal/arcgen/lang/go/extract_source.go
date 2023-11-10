@@ -15,31 +15,63 @@ import (
 	apperr "github.com/kunitsucom/arcgen/pkg/errors"
 )
 
-//nolint:gocognit,cyclop
-func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (ARCSourceSet, error) {
-	arcSrcSet := make(ARCSourceSet, 0)
+//nolint:cyclop,funlen,gocognit
+func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCSourceSet, error) {
+	// NOTE: Use map to avoid duplicate entries.
+	arcSrcMap := make(map[string]*ARCSource)
+
+	goast.Inspect(f, func(node goast.Node) bool {
+		switch n := node.(type) {
+		case *goast.TypeSpec:
+			typeSpec := n
+			switch t := n.Type.(type) {
+			case *goast.StructType:
+				structType := t
+				if hasColumnTagGo(t) {
+					pos := fset.Position(structType.Pos())
+					logs.Debug.Printf("🔍: %s: type=%s", pos.String(), n.Name.Name)
+					arcSrcMap[pos.String()] = &ARCSource{
+						Source:     pos,
+						Package:    f.Name,
+						TypeSpec:   typeSpec,
+						StructType: structType,
+					}
+				}
+				return false
+			default: // noop
+			}
+		default: // noop
+		}
+		return true
+	})
+
+	// Since it is not possible to extract the comment group associated with the position of struct,
+	// search for the struct associated with the comment group and overwrite it.
 	for commentedNode, commentGroups := range goast.NewCommentMap(fset, f, f.Comments) {
 		for _, commentGroup := range commentGroups {
 		CommentGroupLoop:
 			for _, commentLine := range commentGroup.List {
+				commentGroup := commentGroup // MEMO: Using the variable on range scope `commentGroup` in function literal (scopelint)
 				logs.Trace.Printf("commentLine=%s: %s", filepathz.Short(fset.Position(commentGroup.Pos()).String()), commentLine.Text)
 				// NOTE: If the comment line matches the ColumnTagGo, it is assumed to be a comment line for the struct.
 				if matches := ColumnTagGoCommentLineRegex().FindStringSubmatch(commentLine.Text); len(matches) > _ColumnTagGoCommentLineRegexContentIndex {
-					s := &ARCSource{
-						Position:     fset.Position(commentLine.Pos()),
-						Package:      f.Name,
-						CommentGroup: commentGroup,
-					}
 					goast.Inspect(commentedNode, func(node goast.Node) bool {
 						switch n := node.(type) {
 						case *goast.TypeSpec:
-							s.TypeSpec = n
+							typeSpec := n
 							switch t := n.Type.(type) {
 							case *goast.StructType:
-								s.StructType = t
+								structType := t
 								if hasColumnTagGo(t) {
-									logs.Debug.Printf("🔍: %s: type=%s", fset.Position(t.Pos()).String(), n.Name.Name)
-									arcSrcSet = append(arcSrcSet, s)
+									pos := fset.Position(structType.Pos())
+									logs.Debug.Printf("🖋️: %s: overwrite with comment group: type=%s", fset.Position(t.Pos()).String(), n.Name.Name)
+									arcSrcMap[pos.String()] = &ARCSource{
+										Source:       pos,
+										Package:      f.Name,
+										TypeSpec:     typeSpec,
+										StructType:   structType,
+										CommentGroup: commentGroup,
+									}
 								}
 								return false
 							default: // noop
@@ -54,7 +86,18 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (ARCSo
 		}
 	}
 
-	if len(arcSrcSet) == 0 {
+	arcSrcSet := &ARCSourceSet{
+		Filename:    fset.Position(f.Pos()).Filename,
+		PackageName: f.Name.Name,
+		Source:      fset.Position(f.Pos()),
+		ARCSources:  make([]*ARCSource, 0),
+	}
+
+	for _, arcSrc := range arcSrcMap {
+		arcSrcSet.ARCSources = append(arcSrcSet.ARCSources, arcSrc)
+	}
+
+	if len(arcSrcSet.ARCSources) == 0 {
 		return nil, errorz.Errorf("column-tag-go=%s: %w", config.ColumnTagGo(), apperr.ErrColumnTagGoAnnotationNotFoundInSource)
 	}
 

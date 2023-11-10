@@ -158,7 +158,7 @@ func load(ctx context.Context) (cfg *config, err error) { //nolint:unparam
 				Name:        _OptionMethodPrefixGlobal,
 				Environment: _EnvKeyMethodPrefixGlobal,
 				Description: "global method prefix",
-				Default:     cliz.Default("Get"),
+				Default:     cliz.Default(""),
 			},
 			&cliz.StringOption{
 				Name:        _OptionMethodPrefixColumn,

@@ -20,6 +20,8 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"ddlgen",
 			"--column-tag-go=dbtest",
+			"--method-prefix-global=Get",
+			// "--src=tests/common.source",
 			"--src=tests",
 		})
 
@@ -53,6 +55,7 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"ddlgen",
 			"--column-tag-go=dbtest",
+			"--method-prefix-global=Get",
 			"--src=tests/no.errsource",
 		})
 
@@ -70,6 +73,25 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"ddlgen",
 			"--column-tag-go=dbtest",
+			"--method-prefix-global=Get",
+			"--src=tests",
+		})
+
+		backup := fileSuffix
+		t.Cleanup(func() { fileSuffix = backup })
+
+		_, err := config.Load(ctx)
+		require.NoError(t, err)
+
+		fileSuffix = ".errsource"
+		require.ErrorsContains(t, Generate(ctx, config.Source()), "expected 'package', found 'EOF'")
+	})
+
+	t.Run("failure,no-such-file-or-directory", func(t *testing.T) {
+		ctx := contexts.WithArgs(context.Background(), []string{
+			"ddlgen",
+			"--column-tag-go=dbtest",
+			"--method-prefix-global=Get",
 			"--src=tests/no-such-file-or-directory",
 		})
 
@@ -87,6 +109,7 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"ddlgen",
 			"--column-tag-go=dbtest",
+			"--method-prefix-global=Get",
 			"--src=tests/directory.dir",
 		})
 
