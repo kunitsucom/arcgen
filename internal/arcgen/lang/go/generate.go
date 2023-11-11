@@ -89,7 +89,7 @@ func fprint(osFile io.Writer, buf buffer, arcSrcSet *ARCSourceSet) error {
 			}
 		}
 
-		appendAST(astFile, structName, tableName, config.MethodNameTable(), config.MethodPrefixColumn(), fieldNames, columnNames)
+		appendAST(astFile, structName, tableName, config.MethodNameTable(), config.MethodNameColumns(), config.MethodPrefixColumn(), fieldNames, columnNames)
 	}
 
 	if err := printer.Fprint(buf, token.NewFileSet(), astFile); err != nil {
@@ -129,7 +129,7 @@ func extractTableNameFromCommentGroup(commentGroup *ast.CommentGroup) string {
 }
 
 //nolint:funlen
-func appendAST(file *ast.File, structName string, tableName string, prefixGlobal string, prefixColumn string, fieldNames, columnNames []string) {
+func appendAST(file *ast.File, structName string, tableName string, methodNameTable string, methodNameColumns string, methodPrefixColumn string, fieldNames, columnNames []string) {
 	if tableName != "" {
 		file.Decls = append(file.Decls, &ast.FuncDecl{
 			Recv: &ast.FieldList{
@@ -149,7 +149,7 @@ func appendAST(file *ast.File, structName string, tableName string, prefixGlobal
 				},
 			},
 			Name: &ast.Ident{
-				Name: prefixGlobal + "TableName",
+				Name: methodNameTable,
 			},
 			Type: &ast.FuncType{
 				Params: &ast.FieldList{},
@@ -177,13 +177,13 @@ func appendAST(file *ast.File, structName string, tableName string, prefixGlobal
 		})
 	}
 
-	file.Decls = append(file.Decls, generateASTColumnMethods(structName, prefixGlobal, prefixColumn, fieldNames, columnNames)...)
+	file.Decls = append(file.Decls, generateASTColumnMethods(structName, methodNameColumns, methodPrefixColumn, fieldNames, columnNames)...)
 
 	return //nolint:gosimple
 }
 
 //nolint:funlen
-func generateASTColumnMethods(structName string, prefixGlobal string, prefixColumn string, fieldNames, columnNames []string) []ast.Decl {
+func generateASTColumnMethods(structName string, methodNameColumns string, prefixColumn string, fieldNames, columnNames []string) []ast.Decl {
 	decls := make([]ast.Decl, 0)
 
 	// all column names method
@@ -212,7 +212,7 @@ func generateASTColumnMethods(structName string, prefixGlobal string, prefixColu
 			},
 		},
 		Name: &ast.Ident{
-			Name: prefixGlobal + "ColumnNames",
+			Name: methodNameColumns,
 		},
 		Type: &ast.FuncType{
 			Params: &ast.FieldList{},
@@ -264,7 +264,7 @@ func generateASTColumnMethods(structName string, prefixGlobal string, prefixColu
 				},
 			},
 			Name: &ast.Ident{
-				Name: prefixGlobal + prefixColumn + fieldNames[i],
+				Name: prefixColumn + fieldNames[i],
 			},
 			Type: &ast.FuncType{
 				Params: &ast.FieldList{},

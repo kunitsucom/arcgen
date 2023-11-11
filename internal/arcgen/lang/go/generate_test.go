@@ -21,9 +21,11 @@ import (
 func TestGenerate(t *testing.T) {
 	t.Run("success,tests", func(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
-			"ddlgen",
+			"arcgen",
 			"--column-tag-go=dbtest",
-			"--method-name-table=Get",
+			"--method-name-table=GetTableName",
+			"--method-name-columns=GetColumnNames",
+			"--method-prefix-column=GetColumnName_",
 			// "--src=tests/common.source",
 			"--src=tests",
 		})
@@ -56,9 +58,11 @@ func TestGenerate(t *testing.T) {
 
 	t.Run("failure,no.errsource", func(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
-			"ddlgen",
+			"arcgen",
 			"--column-tag-go=dbtest",
-			"--method-name-table=Get",
+			"--method-name-table=GetTableName",
+			"--method-name-columns=GetColumnNames",
+			"--method-prefix-column=GetColumnName_",
 			"--src=tests/no.errsource",
 		})
 
@@ -74,9 +78,11 @@ func TestGenerate(t *testing.T) {
 
 	t.Run("failure,no.errsource", func(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
-			"ddlgen",
+			"arcgen",
 			"--column-tag-go=dbtest",
-			"--method-name-table=Get",
+			"--method-name-table=GetTableName",
+			"--method-name-columns=GetColumnNames",
+			"--method-prefix-column=GetColumnName_",
 			"--src=tests",
 		})
 
@@ -92,9 +98,11 @@ func TestGenerate(t *testing.T) {
 
 	t.Run("failure,no-such-file-or-directory", func(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
-			"ddlgen",
+			"arcgen",
 			"--column-tag-go=dbtest",
-			"--method-name-table=Get",
+			"--method-name-table=GetTableName",
+			"--method-name-columns=GetColumnNames",
+			"--method-prefix-column=GetColumnName_",
 			"--src=tests/no-such-file-or-directory",
 		})
 
@@ -110,9 +118,11 @@ func TestGenerate(t *testing.T) {
 
 	t.Run("failure,directory.dir", func(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
-			"ddlgen",
+			"arcgen",
 			"--column-tag-go=dbtest",
-			"--method-name-table=Get",
+			"--method-name-table=GetTableName",
+			"--method-name-columns=GetColumnNames",
+			"--method-prefix-column=GetColumnName_",
 			"--src=tests/directory.dir",
 		})
 
