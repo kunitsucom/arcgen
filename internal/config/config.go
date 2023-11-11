@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"sync"
-	"time"
 
 	errorz "github.com/kunitsucom/util.go/errors"
 	cliz "github.com/kunitsucom/util.go/exp/cli"
@@ -17,16 +16,16 @@ import (
 //
 //nolint:tagliatelle
 type config struct {
-	Version   bool   `json:"version"`
-	Trace     bool   `json:"trace"`
-	Debug     bool   `json:"debug"`
-	Timestamp string `json:"timestamp"`
-	Language  string `json:"language"`
-	Source    string `json:"source"`
+	Version  bool   `json:"version"`
+	Trace    bool   `json:"trace"`
+	Debug    bool   `json:"debug"`
+	Language string `json:"language"`
+	Source   string `json:"source"`
 	// Golang
 	ColumnTagGo        string `json:"column_tag_go"`
-	MethodPrefixColumn string `json:"column_method_prefix"`
-	MethodNameTable    string `json:"method_table_name"`
+	MethodNameTable    string `json:"method_name_table"`
+	MethodNameColumns  string `json:"method_name_columns"`
+	MethodPrefixColumn string `json:"method_prefix_column"`
 }
 
 //nolint:gochecknoglobals
@@ -74,17 +73,11 @@ const (
 	_OptionDebug = "debug"
 	_EnvKeyDebug = "ARCGEN_DEBUG"
 
-	_OptionTimestamp = "timestamp"
-	_EnvKeyTimestamp = "ARCGEN_TIMESTAMP"
-
 	_OptionLanguage = "lang"
 	_EnvKeyLanguage = "ARCGEN_LANGUAGE"
 
 	_OptionSource = "src"
 	_EnvKeySource = "ARCGEN_SOURCE"
-
-	_OptionDestination = "dst"
-	_EnvKeyDestination = "ARCGEN_DESTINATION"
 
 	// Golang
 
@@ -93,6 +86,9 @@ const (
 
 	_OptionMethodNameTable = "method-name-table"
 	_EnvKeyMethodNameTable = "ARCGEN_METHOD_NAME_TABLE"
+
+	_OptionMethodNameColumns = "method-name-columns"
+	_EnvKeyMethodNameColumns = "ARCGEN_METHOD_NAME_COLUMNS"
 
 	_OptionMethodPrefixColumn = "method-prefix-column"
 	_EnvKeyMethodPrefixColumn = "ARCGEN_METHOD_PREFIX_COLUMN"
@@ -103,8 +99,8 @@ const (
 //nolint:funlen
 func load(ctx context.Context) (cfg *config, err error) { //nolint:unparam
 	cmd := &cliz.Command{
-		Name:        "ARCgen",
-		Description: "Generate DDL from annotated source code.",
+		Name:        "arcgen",
+		Description: "Generate methods that return information such as DB table names and column names from Go struct tags.",
 		Options: []cliz.Option{
 			&cliz.BoolOption{
 				Name:        _OptionVersion,
@@ -124,12 +120,6 @@ func load(ctx context.Context) (cfg *config, err error) { //nolint:unparam
 				Default:     cliz.Default(false),
 			},
 			&cliz.StringOption{
-				Name:        _OptionTimestamp,
-				Environment: _EnvKeyTimestamp,
-				Description: "code generation timestamp",
-				Default:     cliz.Default(time.Now().Format(time.RFC3339)),
-			},
-			&cliz.StringOption{
 				Name:        _OptionLanguage,
 				Environment: _EnvKeyLanguage,
 				Description: "programming language to generate DDL",
@@ -140,12 +130,6 @@ func load(ctx context.Context) (cfg *config, err error) { //nolint:unparam
 				Environment: _EnvKeySource,
 				Description: "source file or directory",
 				Default:     cliz.Default("/dev/stdin"),
-			},
-			&cliz.StringOption{
-				Name:        _OptionDestination,
-				Environment: _EnvKeyDestination,
-				Description: "destination file or directory",
-				Default:     cliz.Default("/dev/stdout"),
 			},
 			// Golang
 			&cliz.StringOption{
@@ -161,6 +145,12 @@ func load(ctx context.Context) (cfg *config, err error) { //nolint:unparam
 				Default:     cliz.Default("TableName"),
 			},
 			&cliz.StringOption{
+				Name:        _OptionMethodNameColumns,
+				Environment: _EnvKeyMethodNameColumns,
+				Description: "method name for columns",
+				Default:     cliz.Default("ColumnNames"),
+			},
+			&cliz.StringOption{
 				Name:        _OptionMethodPrefixColumn,
 				Environment: _EnvKeyMethodPrefixColumn,
 				Description: "method prefix for column name",
@@ -174,15 +164,15 @@ func load(ctx context.Context) (cfg *config, err error) { //nolint:unparam
 	}
 
 	c := &config{
-		Version:   loadVersion(ctx, cmd),
-		Trace:     loadTrace(ctx, cmd),
-		Debug:     loadDebug(ctx, cmd),
-		Timestamp: loadTimestamp(ctx, cmd),
-		Language:  loadLanguage(ctx, cmd),
-		Source:    loadSource(ctx, cmd),
+		Version:  loadVersion(ctx, cmd),
+		Trace:    loadTrace(ctx, cmd),
+		Debug:    loadDebug(ctx, cmd),
+		Language: loadLanguage(ctx, cmd),
+		Source:   loadSource(ctx, cmd),
 		// Golang
 		ColumnTagGo:        loadColumnTagGo(ctx, cmd),
 		MethodNameTable:    loadMethodNameTable(ctx, cmd),
+		MethodNameColumns:  loadMethodNameColumns(ctx, cmd),
 		MethodPrefixColumn: loadMethodPrefixColumn(ctx, cmd),
 	}
 

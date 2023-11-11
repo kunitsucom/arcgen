@@ -4,14 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	errorz "github.com/kunitsucom/util.go/errors"
 	cliz "github.com/kunitsucom/util.go/exp/cli"
 
 	arcgengo "github.com/kunitsucom/arcgen/internal/arcgen/lang/go"
 	"github.com/kunitsucom/arcgen/internal/config"
-	"github.com/kunitsucom/arcgen/internal/contexts"
 	"github.com/kunitsucom/arcgen/internal/logs"
 )
 
@@ -30,8 +28,6 @@ func ARCGen(ctx context.Context) error {
 		fmt.Printf("build timestamp: %s\n", config.BuildTimestamp()) //nolint:forbidigo
 		return nil
 	}
-
-	ctx = contexts.WithNowString(ctx, time.RFC3339, config.Timestamp())
 
 	src := config.Source()
 	logs.Info.Printf("source: %s", src)
