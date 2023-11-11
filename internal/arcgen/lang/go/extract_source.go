@@ -2,9 +2,11 @@ package arcgengo
 
 import (
 	"context"
+	"fmt"
 	goast "go/ast"
 	"go/token"
 	"reflect"
+	"sort"
 	"strings"
 
 	errorz "github.com/kunitsucom/util.go/errors"
@@ -32,7 +34,6 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 					logs.Debug.Printf("🔍: %s: type=%s", pos.String(), n.Name.Name)
 					arcSrcMap[pos.String()] = &ARCSource{
 						Source:     pos,
-						Package:    f.Name,
 						TypeSpec:   typeSpec,
 						StructType: structType,
 					}
@@ -67,7 +68,6 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 									logs.Debug.Printf("🖋️: %s: overwrite with comment group: type=%s", fset.Position(t.Pos()).String(), n.Name.Name)
 									arcSrcMap[pos.String()] = &ARCSource{
 										Source:       pos,
-										Package:      f.Name,
 										TypeSpec:     typeSpec,
 										StructType:   structType,
 										CommentGroup: commentGroup,
@@ -100,6 +100,11 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 	if len(arcSrcSet.ARCSources) == 0 {
 		return nil, errorz.Errorf("column-tag-go=%s: %w", config.ColumnTagGo(), apperr.ErrColumnTagGoAnnotationNotFoundInSource)
 	}
+
+	sort.Slice(arcSrcSet.ARCSources, func(i, j int) bool {
+		return fmt.Sprintf("%s:%07d", arcSrcSet.ARCSources[i].Source.Filename, arcSrcSet.ARCSources[i].Source.Line) <
+			fmt.Sprintf("%s:%07d", arcSrcSet.ARCSources[j].Source.Filename, arcSrcSet.ARCSources[j].Source.Line)
+	})
 
 	return arcSrcSet, nil
 }

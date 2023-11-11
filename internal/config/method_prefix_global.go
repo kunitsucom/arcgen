@@ -6,13 +6,13 @@ import (
 	cliz "github.com/kunitsucom/util.go/exp/cli"
 )
 
-func loadMethodPrefixGlobal(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionMethodPrefixGlobal)
+func loadMethodNameTable(_ context.Context, cmd *cliz.Command) string {
+	v, _ := cmd.GetOptionString(_OptionMethodNameTable)
 	return v
 }
 
-func MethodPrefixGlobal() string {
+func MethodNameTable() string {
 	globalConfigMu.RLock()
 	defer globalConfigMu.RUnlock()
-	return globalConfig.MethodPrefixGlobal
+	return globalConfig.MethodNameTable
 }

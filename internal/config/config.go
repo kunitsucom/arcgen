@@ -26,7 +26,7 @@ type config struct {
 	// Golang
 	ColumnTagGo        string `json:"column_tag_go"`
 	MethodPrefixColumn string `json:"column_method_prefix"`
-	MethodPrefixGlobal string `json:"global_method_prefix"`
+	MethodNameTable    string `json:"method_table_name"`
 }
 
 //nolint:gochecknoglobals
@@ -91,8 +91,8 @@ const (
 	_OptionColumnTagGo = "column-tag-go"
 	_EnvKeyColumnTagGo = "ARCGEN_COLUMN_TAG_GO"
 
-	_OptionMethodPrefixGlobal = "method-prefix-global"
-	_EnvKeyMethodPrefixGlobal = "ARCGEN_METHOD_PREFIX_GLOBAL"
+	_OptionMethodNameTable = "method-name-table"
+	_EnvKeyMethodNameTable = "ARCGEN_METHOD_NAME_TABLE"
 
 	_OptionMethodPrefixColumn = "method-prefix-column"
 	_EnvKeyMethodPrefixColumn = "ARCGEN_METHOD_PREFIX_COLUMN"
@@ -155,15 +155,15 @@ func load(ctx context.Context) (cfg *config, err error) { //nolint:unparam
 				Default:     cliz.Default("db"),
 			},
 			&cliz.StringOption{
-				Name:        _OptionMethodPrefixGlobal,
-				Environment: _EnvKeyMethodPrefixGlobal,
-				Description: "global method prefix",
-				Default:     cliz.Default(""),
+				Name:        _OptionMethodNameTable,
+				Environment: _EnvKeyMethodNameTable,
+				Description: "method name for table",
+				Default:     cliz.Default("TableName"),
 			},
 			&cliz.StringOption{
 				Name:        _OptionMethodPrefixColumn,
 				Environment: _EnvKeyMethodPrefixColumn,
-				Description: "column method prefix",
+				Description: "method prefix for column name",
 				Default:     cliz.Default("ColumnName_"),
 			},
 		},
@@ -182,7 +182,7 @@ func load(ctx context.Context) (cfg *config, err error) { //nolint:unparam
 		Source:    loadSource(ctx, cmd),
 		// Golang
 		ColumnTagGo:        loadColumnTagGo(ctx, cmd),
-		MethodPrefixGlobal: loadMethodPrefixGlobal(ctx, cmd),
+		MethodNameTable:    loadMethodNameTable(ctx, cmd),
 		MethodPrefixColumn: loadMethodPrefixColumn(ctx, cmd),
 	}
 

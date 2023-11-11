@@ -5,14 +5,14 @@
 package main
 
 func (s *User) GetTableName() string {
-	return "`Users`"
+	return "Users"
 }
 
 func (s *User) GetColumnNames() []string {
 	return []string{"Id", "Name", "Email", "Age"}
 }
 
-func (s *User) GetColumnName_Id() string {
+func (s *User) GetColumnName_ID() string {
 	return "Id"
 }
 
@@ -32,7 +32,7 @@ func (s *Group) GetColumnNames() []string {
 	return []string{"Id", "Name"}
 }
 
-func (s *Group) GetColumnName_Id() string {
+func (s *Group) GetColumnName_ID() string {
 	return "Id"
 }
 
