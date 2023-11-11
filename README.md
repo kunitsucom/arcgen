@@ -50,39 +50,39 @@ $ cat /tmp/sample.db.gen.go
 
 package sample
 
-func (s User) TableName() string {
+func (s *User) TableName() string {
     return "Users"
 }
 
-func (s User) ColumnNames() []string {
+func (s *User) ColumnNames() []string {
     return []string{"Id", "Name", "Age"}
 }
 
-func (s User) ColumnName_ID() string {
+func (s *User) ColumnName_ID() string {
     return "Id"
 }
 
-func (s User) ColumnName_Name() string {
+func (s *User) ColumnName_Name() string {
     return "Name"
 }
 
-func (s User) ColumnName_Age() string {
+func (s *User) ColumnName_Age() string {
     return "Age"
 }
 
-func (s Group) ColumnNames() []string {
+func (s *Group) ColumnNames() []string {
     return []string{"Id", "Name", "Description"}
 }
 
-func (s Group) ColumnName_ID() string {
+func (s *Group) ColumnName_ID() string {
     return "Id"
 }
 
-func (s Group) ColumnName_Name() string {
+func (s *Group) ColumnName_Name() string {
     return "Name"
 }
 
-func (s Group) ColumnName_Description() string {
+func (s *Group) ColumnName_Description() string {
     return "Description"
 }
 ```

@@ -140,8 +140,10 @@ func appendAST(file *ast.File, structName string, tableName string, methodNameTa
 								Name: "s",
 							},
 						},
-						Type: &ast.Ident{
-							Name: structName, // MEMO: struct name
+						Type: &ast.StarExpr{
+							X: &ast.Ident{
+								Name: structName, // MEMO: struct name
+							},
 						},
 					},
 				},
@@ -201,8 +203,10 @@ func generateASTColumnMethods(structName string, methodNameColumns string, prefi
 							Name: "s",
 						},
 					},
-					Type: &ast.Ident{
-						Name: structName, // MEMO: struct name
+					Type: &ast.StarExpr{
+						X: &ast.Ident{
+							Name: structName, // MEMO: struct name
+						},
 					},
 				},
 			},
@@ -251,8 +255,10 @@ func generateASTColumnMethods(structName string, methodNameColumns string, prefi
 								Name: "s",
 							},
 						},
-						Type: &ast.Ident{
-							Name: structName, // MEMO: struct name
+						Type: &ast.StarExpr{
+							X: &ast.Ident{
+								Name: structName, // MEMO: struct name
+							},
 						},
 					},
 				},
