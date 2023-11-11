@@ -2,7 +2,9 @@
 package arcgengo
 
 import (
+	"bytes"
 	"context"
+	goast "go/ast"
 	"io"
 	"os"
 	"testing"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/kunitsucom/arcgen/internal/config"
 	"github.com/kunitsucom/arcgen/internal/contexts"
+	"github.com/kunitsucom/arcgen/pkg/errors"
 )
 
 //nolint:paralleltest
@@ -20,7 +23,7 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"ddlgen",
 			"--column-tag-go=dbtest",
-			"--method-prefix-global=Get",
+			"--method-name-table=Get",
 			// "--src=tests/common.source",
 			"--src=tests",
 		})
@@ -55,7 +58,7 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"ddlgen",
 			"--column-tag-go=dbtest",
-			"--method-prefix-global=Get",
+			"--method-name-table=Get",
 			"--src=tests/no.errsource",
 		})
 
@@ -66,14 +69,14 @@ func TestGenerate(t *testing.T) {
 		require.NoError(t, err)
 
 		fileSuffix = ".source"
-		require.ErrorsContains(t, Generate(ctx, config.Source()), "expected 'package', found 'EOF'")
+		require.ErrorContains(t, Generate(ctx, config.Source()), "expected 'package', found 'EOF'")
 	})
 
 	t.Run("failure,no.errsource", func(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"ddlgen",
 			"--column-tag-go=dbtest",
-			"--method-prefix-global=Get",
+			"--method-name-table=Get",
 			"--src=tests",
 		})
 
@@ -84,14 +87,14 @@ func TestGenerate(t *testing.T) {
 		require.NoError(t, err)
 
 		fileSuffix = ".errsource"
-		require.ErrorsContains(t, Generate(ctx, config.Source()), "expected 'package', found 'EOF'")
+		require.ErrorContains(t, Generate(ctx, config.Source()), "expected 'package', found 'EOF'")
 	})
 
 	t.Run("failure,no-such-file-or-directory", func(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"ddlgen",
 			"--column-tag-go=dbtest",
-			"--method-prefix-global=Get",
+			"--method-name-table=Get",
 			"--src=tests/no-such-file-or-directory",
 		})
 
@@ -102,14 +105,14 @@ func TestGenerate(t *testing.T) {
 		require.NoError(t, err)
 
 		fileSuffix = ".source"
-		require.ErrorsContains(t, Generate(ctx, config.Source()), "no such file or directory")
+		require.ErrorContains(t, Generate(ctx, config.Source()), "no such file or directory")
 	})
 
 	t.Run("failure,directory.dir", func(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"ddlgen",
 			"--column-tag-go=dbtest",
-			"--method-prefix-global=Get",
+			"--method-name-table=Get",
 			"--src=tests/directory.dir",
 		})
 
@@ -120,6 +123,101 @@ func TestGenerate(t *testing.T) {
 		require.NoError(t, err)
 
 		fileSuffix = ".dir"
-		require.ErrorsContains(t, Generate(ctx, config.Source()), "is a directory")
+		require.ErrorContains(t, Generate(ctx, config.Source()), "is a directory")
+	})
+}
+
+var _ buffer = (*testBuffer)(nil)
+
+type testBuffer struct {
+	WriteFunc  func(p []byte) (n int, err error)
+	StringFunc func() string
+}
+
+func (w *testBuffer) Write(p []byte) (n int, err error) {
+	return w.WriteFunc(p)
+}
+
+func (w *testBuffer) String() string {
+	return w.StringFunc()
+}
+
+//nolint:paralleltest
+func Test_generate(t *testing.T) {
+	t.Run("failure,os.OpenFile", func(t *testing.T) {
+		arcSrcSets := ARCSourceSets{
+			&ARCSourceSet{
+				Filename: "tests/invalid-source-set",
+				ARCSources: []*ARCSource{
+					nil,
+				},
+			},
+		}
+		backup := fileSuffix
+		t.Cleanup(func() { fileSuffix = backup })
+		fileSuffix = ".invalid-source-set"
+		err := generate(arcSrcSets)
+		require.ErrorIs(t, err, errors.ErrInvalidSourceSet)
+	})
+}
+
+func newTestARCSourceSet() *ARCSourceSet {
+	return &ARCSourceSet{
+		PackageName: "testpkg",
+		ARCSources: []*ARCSource{
+			{
+				TypeSpec: &goast.TypeSpec{
+					Name: &goast.Ident{
+						Name: "Test",
+					},
+				},
+				StructType: &goast.StructType{
+					Fields: &goast.FieldList{
+						List: []*goast.Field{
+							{
+								Names: []*goast.Ident{
+									{
+										Name: "ID",
+									},
+								},
+								Tag: &goast.BasicLit{
+									Value: "`dbtest:\"id\"`",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func Test_sprint(t *testing.T) {
+	t.Parallel()
+	t.Run("failure,buffer", func(t *testing.T) {
+		t.Parallel()
+		buf := &testBuffer{
+			WriteFunc: func(p []byte) (n int, err error) {
+				return 0, io.ErrClosedPipe
+			},
+			StringFunc: func() string {
+				return ""
+			},
+		}
+		arcSrcSet := newTestARCSourceSet()
+		err := fprint(nil, buf, arcSrcSet)
+		require.ErrorIs(t, err, io.ErrClosedPipe)
+	})
+
+	t.Run("failure,File", func(t *testing.T) {
+		t.Parallel()
+		f := &testBuffer{
+			WriteFunc: func(p []byte) (n int, err error) {
+				return 0, io.ErrClosedPipe
+			},
+		}
+		arcSrcSet := newTestARCSourceSet()
+		err := fprint(f, bytes.NewBuffer(nil), arcSrcSet)
+		require.ErrorIs(t, err, io.ErrClosedPipe)
 	})
 }

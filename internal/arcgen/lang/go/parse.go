@@ -25,9 +25,8 @@ func parse(ctx context.Context, src string) (ARCSourceSets, error) {
 		return nil, errorz.Errorf("os.Stat: %w", err)
 	}
 
-	arcSrcSets := make(ARCSourceSets, 0)
-
 	if info.IsDir() {
+		arcSrcSets := make(ARCSourceSets, 0)
 		if err := filepath.WalkDir(sourceAbs, walkDirFn(ctx, &arcSrcSets)); err != nil {
 			return nil, errorz.Errorf("filepath.WalkDir: %w", err)
 		}
@@ -40,8 +39,7 @@ func parse(ctx context.Context, src string) (ARCSourceSets, error) {
 		return nil, errorz.Errorf("parseFile: file=%s: %v", sourceAbs, err)
 	}
 
-	arcSrcSets = append(arcSrcSets, arcSrcSet)
-	return arcSrcSets, nil
+	return ARCSourceSets{arcSrcSet}, nil
 }
 
 //nolint:gochecknoglobals

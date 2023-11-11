@@ -12,8 +12,8 @@ import (
 
 type (
 	ARCSource struct {
-		Source  token.Position // TODO: Unnecessary?
-		Package *ast.Ident
+		// Source for sorting
+		Source token.Position
 		// TypeSpec is used to guess the table name if the CREATE TABLE annotation is not found.
 		TypeSpec *ast.TypeSpec
 		// StructType is used to determine the column name. If the tag specified by --column-tag-go is not found, the field name is used.
