@@ -4,38 +4,38 @@
 
 package main
 
-func (s User) GetTableName() string {
+func (s *User) GetTableName() string {
 	return "Users"
 }
 
-func (s User) GetColumnNames() []string {
+func (s *User) GetColumnNames() []string {
 	return []string{"Id", "Name", "Email", "Age"}
 }
 
-func (s User) GetColumnName_ID() string {
+func (s *User) GetColumnName_ID() string {
 	return "Id"
 }
 
-func (s User) GetColumnName_Name() string {
+func (s *User) GetColumnName_Name() string {
 	return "Name"
 }
 
-func (s User) GetColumnName_Email() string {
+func (s *User) GetColumnName_Email() string {
 	return "Email"
 }
 
-func (s User) GetColumnName_Age() string {
+func (s *User) GetColumnName_Age() string {
 	return "Age"
 }
 
-func (s Group) GetColumnNames() []string {
+func (s *Group) GetColumnNames() []string {
 	return []string{"Id", "Name"}
 }
 
-func (s Group) GetColumnName_ID() string {
+func (s *Group) GetColumnName_ID() string {
 	return "Id"
 }
 
-func (s Group) GetColumnName_Name() string {
+func (s *Group) GetColumnName_Name() string {
 	return "Name"
 }
