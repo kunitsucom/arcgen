@@ -7,6 +7,7 @@ import (
 
 	errorz "github.com/kunitsucom/util.go/errors"
 	cliz "github.com/kunitsucom/util.go/exp/cli"
+	"github.com/kunitsucom/util.go/version"
 
 	arcgengo "github.com/kunitsucom/arcgen/internal/arcgen/lang/go"
 	"github.com/kunitsucom/arcgen/internal/config"
@@ -22,10 +23,10 @@ func ARCGen(ctx context.Context) error {
 	}
 
 	if config.Version() {
-		fmt.Printf("version: %s\n", config.BuildVersion())           //nolint:forbidigo
-		fmt.Printf("revision: %s\n", config.BuildRevision())         //nolint:forbidigo
-		fmt.Printf("build branch: %s\n", config.BuildBranch())       //nolint:forbidigo
-		fmt.Printf("build timestamp: %s\n", config.BuildTimestamp()) //nolint:forbidigo
+		fmt.Printf("version: %s\n", version.Version())           //nolint:forbidigo
+		fmt.Printf("revision: %s\n", version.Revision())         //nolint:forbidigo
+		fmt.Printf("build branch: %s\n", version.Branch())       //nolint:forbidigo
+		fmt.Printf("build timestamp: %s\n", version.Timestamp()) //nolint:forbidigo
 		return nil
 	}
 
