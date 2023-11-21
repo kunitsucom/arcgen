@@ -10,7 +10,7 @@ type RegexIndex struct {
 //nolint:gochecknoglobals
 var (
 	RegexIndexTableName = RegexIndex{
-		Regex: regexp.MustCompile(`^\s*(//+\s*|/\*\s*)?\S+\s*:\s*table(s)?\s*:\s*(\S+.*)$`),
+		Regex: regexp.MustCompile(`^\s*(//+\s*|/\*\s*)?\S+\s*:\s*table(s)?\s*[: ]\s*(\S+.*)$`),
 		Index: 3,
 	}
 )
