@@ -3,7 +3,7 @@ package main
 type (
 	// User is a user.
 	//
-	// dbtest: table: `Users`
+	//dbtest:table `Users`
 	User struct {
 		// ID is a user ID.
 		ID string     `dbtest:"Id"`

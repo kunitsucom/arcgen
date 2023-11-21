@@ -119,7 +119,7 @@ func extractTableNameFromCommentGroup(commentGroup *ast.CommentGroup) string {
 	if commentGroup != nil {
 		for _, comment := range commentGroup.List {
 			if matches := util.RegexIndexTableName.Regex.FindStringSubmatch(comment.Text); len(matches) > util.RegexIndexTableName.Index {
-				return strings.Trim(matches[util.RegexIndexTableName.Index], "`")
+				return strings.Trim(strings.Trim(strings.Trim(matches[util.RegexIndexTableName.Index], "`"), `"`), "'")
 			}
 		}
 	}
