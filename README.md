@@ -92,7 +92,7 @@ func (s *Group) ColumnName_Description() string {
 ### pre-built binary
 
 ```bash
-VERSION=v0.0.7
+VERSION=v0.0.8
 
 # download
 curl -fLROSs https://github.com/kunitsucom/arcgen/releases/download/${VERSION}/arcgen_${VERSION}_darwin_arm64.zip
@@ -104,7 +104,7 @@ unzip -j arcgen_${VERSION}_darwin_arm64.zip '*/arcgen'
 ### go install
 
 ```bash
-go install github.com/kunitsucom/arcgen/cmd/arcgen@latest
+go install github.com/kunitsucom/arcgen/cmd/arcgen@v0.0.8
 ```
 
 ## Usage
