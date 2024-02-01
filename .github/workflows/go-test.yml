@@ -130,7 +130,7 @@ jobs:
           direnv allow .
           direnv exec . bash -Eeux -o pipefail -c 'echo "${GOPRIVATE:-}${GOPRIVATE+,}" | while read -d , -r LINE; do echo "set git config: ${LINE}"; git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@${LINE}".insteadOf "https://${LINE}"; done'
           direnv exec . make test
-      - uses: codecov/codecov-action@v3 # ref. https://github.com/codecov/codecov-action#example-workflowyml-with-codecov-action
+      - uses: codecov/codecov-action@v4 # ref. https://github.com/codecov/codecov-action#example-workflowyml-with-codecov-action
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ${{ env.WORKDIR }}/coverage.txt
