@@ -8,6 +8,12 @@ func (s *User) GetTableName() string {
 	return "Users"
 }
 
+type UserSlice []*User
+
+func (s UserSlice) GetTableName() string {
+	return "Users"
+}
+
 func (s *User) GetColumnNames() []string {
 	return []string{"Id", "Name", "Email", "Age"}
 }
@@ -28,6 +34,26 @@ func (s *User) GetColumnName_Age() string {
 	return "Age"
 }
 
+func (s UserSlice) GetColumnNames() []string {
+	return []string{"Id", "Name", "Email", "Age"}
+}
+
+func (s UserSlice) GetColumnName_ID() string {
+	return "Id"
+}
+
+func (s UserSlice) GetColumnName_Name() string {
+	return "Name"
+}
+
+func (s UserSlice) GetColumnName_Email() string {
+	return "Email"
+}
+
+func (s UserSlice) GetColumnName_Age() string {
+	return "Age"
+}
+
 func (s *Group) GetColumnNames() []string {
 	return []string{"Id", "Name"}
 }
@@ -37,5 +63,17 @@ func (s *Group) GetColumnName_ID() string {
 }
 
 func (s *Group) GetColumnName_Name() string {
+	return "Name"
+}
+
+func (s GroupSlice) GetColumnNames() []string {
+	return []string{"Id", "Name"}
+}
+
+func (s GroupSlice) GetColumnName_ID() string {
+	return "Id"
+}
+
+func (s GroupSlice) GetColumnName_Name() string {
 	return "Name"
 }

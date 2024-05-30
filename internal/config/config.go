@@ -26,6 +26,7 @@ type config struct {
 	MethodNameTable    string `json:"method_name_table"`
 	MethodNameColumns  string `json:"method_name_columns"`
 	MethodPrefixColumn string `json:"method_prefix_column"`
+	SliceTypeSuffix    string `json:"slice_type_suffix"`
 }
 
 //nolint:gochecknoglobals
@@ -92,6 +93,9 @@ const (
 
 	_OptionMethodPrefixColumn = "method-prefix-column"
 	_EnvKeyMethodPrefixColumn = "ARCGEN_METHOD_PREFIX_COLUMN"
+
+	_OptionSliceTypeSuffix = "slice-type-suffix"
+	_EnvKeySliceTypeSuffix = "ARCGEN_SLICE_TYPE_SUFFIX"
 )
 
 // MEMO: Since there is a possibility of returning some kind of error in the future, the signature is made to return an error.
@@ -156,6 +160,12 @@ func load(ctx context.Context) (cfg *config, err error) { //nolint:unparam
 				Description: "method prefix for column name",
 				Default:     cliz.Default("ColumnName_"),
 			},
+			&cliz.StringOption{
+				Name:        _OptionSliceTypeSuffix,
+				Environment: _EnvKeySliceTypeSuffix,
+				Description: "suffix for slice type",
+				Default:     cliz.Default(""),
+			},
 		},
 	}
 
@@ -174,6 +184,7 @@ func load(ctx context.Context) (cfg *config, err error) { //nolint:unparam
 		MethodNameTable:    loadMethodNameTable(ctx, cmd),
 		MethodNameColumns:  loadMethodNameColumns(ctx, cmd),
 		MethodPrefixColumn: loadMethodPrefixColumn(ctx, cmd),
+		SliceTypeSuffix:    loadSliceTypeSuffix(ctx, cmd),
 	}
 
 	if c.Debug {

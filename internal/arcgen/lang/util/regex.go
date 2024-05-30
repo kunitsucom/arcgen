@@ -11,6 +11,6 @@ type RegexIndex struct {
 var (
 	RegexIndexTableName = RegexIndex{
 		Regex: regexp.MustCompile(`^\s*(//+\s*|/\*\s*)?\S+\s*:\s*table(s)?\s*[: ]\s*(\S+.*)$`),
-		Index: 3,
+		Index: 3, //nolint:mnd // 3 is the index of the table name
 	}
 )
