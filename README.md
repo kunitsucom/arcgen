@@ -39,7 +39,7 @@ type Group struct {
 EOF
 
 $ # == 2. generate file ================================
-$ arcgen --slice-type-suffix Slice --src /tmp/sample.go
+$ arcgen --method-name-table TableName --method-name-columns ColumnNames --method-prefix-column ColumnName_ --slice-type-suffix Slice --src /tmp/sample.go
 INFO: 2023/11/12 03:56:59 arcgen.go:33: source: /tmp/sample.go
 
 $ # == 3. Check generated file ================================
@@ -180,6 +180,8 @@ options:
         method name for columns
     --method-prefix-column (env: ARCGEN_METHOD_PREFIX_COLUMN, default: ColumnName_)
         method prefix for column name
+    --slice-type-suffix (env: ARCGEN_SLICE_TYPE_SUFFIX, default: )
+        suffix for slice type
     --help (default: false)
         show usage
 ```
