@@ -35,14 +35,12 @@ versenv:
 githooks:
 	@[[ -f "${PRE_PUSH}" ]] || cp -ai "${REPO_ROOT}/.githooks/pre-push" "${PRE_PUSH}"
 
-clean:  ## Clean up chace, etc
+clean:  ## Clean up cache, etc
 	go clean -x -cache -testcache -modcache -fuzzcache
 	golangci-lint cache clean
 
 .PHONY: lint
 lint:  ## Run secretlint, go mod tidy, golangci-lint
-	# ref. https://github.com/secretlint/secretlint
-	docker run -v `pwd`:`pwd` -w `pwd` --rm secretlint/secretlint secretlint "**/*"
 	# tidy
 	go mod tidy
 	git diff --exit-code go.mod go.sum
@@ -50,6 +48,12 @@ lint:  ## Run secretlint, go mod tidy, golangci-lint
 	# ref. https://golangci-lint.run/usage/linters/
 	golangci-lint run --fix --sort-results
 	git diff --exit-code
+	# gitleaks ref. https://github.com/gitleaks/gitleaks
+	@if ! command -v gitleaks >/dev/null 2>&1; then \
+		printf "\033[31;1m%s\033[0m\n" "gitleaks is not installed: brew install gitleaks" 1>&2; \
+		exit 1; \
+	fi
+	gitleaks detect --source . -v
 
 .PHONY: credits
 credits:  ## Generate CREDITS file

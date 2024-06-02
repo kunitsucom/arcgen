@@ -26,6 +26,7 @@ func TestGenerate(t *testing.T) {
 			"--method-name-table=GetTableName",
 			"--method-name-columns=GetColumnNames",
 			"--method-prefix-column=GetColumnName_",
+			"--slice-type-suffix=Slice",
 			// "--src=tests/common.source",
 			"--src=tests",
 		})
@@ -207,7 +208,7 @@ func Test_sprint(t *testing.T) {
 	t.Run("failure,buffer", func(t *testing.T) {
 		t.Parallel()
 		buf := &testBuffer{
-			WriteFunc: func(p []byte) (n int, err error) {
+			WriteFunc: func(_ []byte) (n int, err error) {
 				return 0, io.ErrClosedPipe
 			},
 			StringFunc: func() string {
@@ -222,7 +223,7 @@ func Test_sprint(t *testing.T) {
 	t.Run("failure,File", func(t *testing.T) {
 		t.Parallel()
 		f := &testBuffer{
-			WriteFunc: func(p []byte) (n int, err error) {
+			WriteFunc: func(_ []byte) (n int, err error) {
 				return 0, io.ErrClosedPipe
 			},
 		}
