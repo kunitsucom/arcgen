@@ -137,7 +137,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ${{ env.WORKDIR }}/coverage.txt
       - name: Move docker build cache (workaround)
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() }}  # ref. https://docs.github.com/en/actions/learn-github-actions/expressions#always
         run: |
           if [[ -d ${{ env.DOCKER_BUILD_CACHE_TO }} ]]; then
             rm -rf ${{ env.DOCKER_BUILD_CACHE_FROM }}
