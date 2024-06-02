@@ -132,7 +132,9 @@ func extractTableNameFromCommentGroup(commentGroup *ast.CommentGroup) string {
 //nolint:funlen
 func appendAST(file *ast.File, structName string, sliceTypeSuffix string, tableName string, methodNameTable string, methodNameColumns string, methodPrefixColumn string, fieldNames, columnNames []string) {
 	if tableName != "" {
-		// func (s *StructName) TableName() string { return "TableName" }
+		//	func (s *StructName) TableName() string {
+		//		return "TableName"
+		//	}
 		file.Decls = append(file.Decls, &ast.FuncDecl{
 			Recv: &ast.FieldList{
 				List: []*ast.Field{
@@ -199,7 +201,9 @@ func appendAST(file *ast.File, structName string, sliceTypeSuffix string, tableN
 						},
 					},
 				},
-				// func (s StructNameSlice) TableName() string { return "TableName" }
+				//	func (s StructNameSlice) TableName() string {
+				//		return "TableName"
+				//	}
 				&ast.FuncDecl{
 					Recv: &ast.FieldList{
 						List: []*ast.Field{
