@@ -130,10 +130,10 @@ func (s GroupSlice) ColumnName_Description() string {
 ### pre-built binary
 
 ```bash
-LATEST_VERSION=$(curl -ISs https://github.com/kunitsucom/ddlctl/releases/latest | tr -d '\r' | awk -F/ '/location:/{print $NF}')
+LATEST_VERSION=$(curl -ISs https://github.com/kunitsucom/arcgen/releases/latest | tr -d '\r' | awk -F/ '/location:/{print $NF}')
 OS=$(uname | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
-URL="https://github.com/kunitsucom/ddlctl/releases/download/${LATEST_VERSION}/ddlctl_${LATEST_VERSION}_${OS}_${ARCH}.zip"
+URL="https://github.com/kunitsucom/arcgen/releases/download/${LATEST_VERSION}/arcgen_${LATEST_VERSION}_${OS}_${ARCH}.zip"
 
 # Check URL
 echo "${URL}"
