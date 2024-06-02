@@ -39,7 +39,7 @@ type Group struct {
 EOF
 
 $ # == 2. generate file ================================
-$ arcgen --src /tmp/sample.go
+$ arcgen --slice-type-suffix Slice --src /tmp/sample.go
 INFO: 2023/11/12 03:56:59 arcgen.go:33: source: /tmp/sample.go
 
 $ # == 3. Check generated file ================================
@@ -51,6 +51,12 @@ $ cat /tmp/sample.db.gen.go
 package sample
 
 func (s *User) TableName() string {
+    return "Users"
+}
+
+type UserSlice []*User
+
+func (s UserSlice) TableName() string {
     return "Users"
 }
 
@@ -70,6 +76,22 @@ func (s *User) ColumnName_Age() string {
     return "Age"
 }
 
+func (s UserSlice) ColumnNames() []string {
+    return []string{"Id", "Name", "Age"}
+}
+
+func (s UserSlice) ColumnName_ID() string {
+    return "Id"
+}
+
+func (s UserSlice) ColumnName_Name() string {
+    return "Name"
+}
+
+func (s UserSlice) ColumnName_Age() string {
+    return "Age"
+}
+
 func (s *Group) ColumnNames() []string {
     return []string{"Id", "Name", "Description"}
 }
@@ -85,6 +107,22 @@ func (s *Group) ColumnName_Name() string {
 func (s *Group) ColumnName_Description() string {
     return "Description"
 }
+
+func (s GroupSlice) ColumnNames() []string {
+    return []string{"Id", "Name", "Description"}
+}
+
+func (s GroupSlice) ColumnName_ID() string {
+    return "Id"
+}
+
+func (s GroupSlice) ColumnName_Name() string {
+    return "Name"
+}
+
+func (s GroupSlice) ColumnName_Description() string {
+    return "Description"
+}
 ```
 
 ## Installation
@@ -92,19 +130,25 @@ func (s *Group) ColumnName_Description() string {
 ### pre-built binary
 
 ```bash
-VERSION=v0.0.8
+LATEST_VERSION=$(curl -ISs https://github.com/kunitsucom/ddlctl/releases/latest | tr -d '\r' | awk -F/ '/location:/{print $NF}')
+OS=$(uname | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+URL="https://github.com/kunitsucom/ddlctl/releases/download/${LATEST_VERSION}/ddlctl_${LATEST_VERSION}_${OS}_${ARCH}.zip"
 
-# download
-curl -fLROSs https://github.com/kunitsucom/arcgen/releases/download/${VERSION}/arcgen_${VERSION}_darwin_arm64.zip
+# Check URL
+echo "${URL}"
 
-# unzip
-unzip -j arcgen_${VERSION}_darwin_arm64.zip '*/arcgen'
+# Download
+curl -fLROSs "${URL}"
+
+# Unzip
+unzip -j arcgen_${LATEST_VERSION}_${OS}_${ARCH}.zip '*/arcgen'
 ```
 
 ### go install
 
 ```bash
-go install github.com/kunitsucom/arcgen/cmd/arcgen@v0.0.8
+go install github.com/kunitsucom/arcgen/cmd/arcgen@latest
 ```
 
 ## Usage
