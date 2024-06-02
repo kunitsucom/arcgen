@@ -63,7 +63,7 @@ jobs:
           ================================================================
           DEBUG_DOC
       - name: actions/cache for versenv
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/versenv
@@ -87,7 +87,7 @@ jobs:
           # Setup versenv
           direnv allow ${{ env.WORKDIR }}
           make versenv
-      - uses: actions/setup-go@v4 # ref. https://github.com/actions/setup-go#usage
+      - uses: actions/setup-go@v5 # ref. https://github.com/actions/setup-go#usage
         id: setup-go
         with:
           cache: false
@@ -99,7 +99,7 @@ jobs:
           echo "GOVERSION=$(go version | cut -d' ' -f3)" >> "$GITHUB_OUTPUT"
           echo "GOCACHE=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
       - name: actions/cache for go
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/go/pkg/mod
@@ -119,7 +119,7 @@ jobs:
           set -Eeu -o pipefail -x
           direnv allow .
           direnv exec . bash -Eeux -o pipefail -c 'echo "${GOPRIVATE:-}${GOPRIVATE+,}" | while read -d , -r LINE; do echo "set git config: ${LINE}"; git config --global url."https://${GITHUB_TOKEN}:x-oauth-basic@${LINE}".insteadOf "https://${LINE}"; done'
-      - uses: golangci/golangci-lint-action@v3.7.0 # ref. https://github.com/golangci/golangci-lint-action#how-to-use
+      - uses: golangci/golangci-lint-action@v6.0.1 # ref. https://github.com/golangci/golangci-lint-action#how-to-use
         with:
           working-directory: ${{ env.WORKDIR }}
           args: --timeout=600s
