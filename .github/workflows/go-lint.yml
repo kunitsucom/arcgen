@@ -43,6 +43,7 @@ jobs:
             ^.github/release.yml$
             ^.github/workflows/label-checker.yml$
             ^.github/workflows/task-list-checker.yml$
+            ^.*\.md$
   go-lint:
     runs-on: ubuntu-latest
     needs: paths-ignore
