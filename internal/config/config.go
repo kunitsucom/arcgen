@@ -100,6 +100,7 @@ const (
 func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) { //nolint:unparam
 	cmd := &cliz.Command{
 		Name:        "arcgen",
+		Usage:       "arcgen [OPTIONS] [FILE or DIR ...]",
 		Description: "Generate methods that return information such as DB table names and column names from Go struct tags.",
 		Options: []cliz.Option{
 			&cliz.BoolOption{

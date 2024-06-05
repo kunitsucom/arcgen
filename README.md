@@ -156,7 +156,7 @@ go install github.com/kunitsucom/arcgen/cmd/arcgen@latest
 ```console
 $ arcgen --help
 Usage:
-    arcgen [options] [source file or directory] ...
+    arcgen [OPTIONS] [FILE or DIR ...]
 
 Description:
     Generate methods that return information such as DB table names and column names from Go struct tags.
