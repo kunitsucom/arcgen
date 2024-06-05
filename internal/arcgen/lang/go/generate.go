@@ -39,7 +39,7 @@ func Generate(ctx context.Context, src string) error {
 func generate(arcSrcSets ARCSourceSets) error {
 	for _, arcSrcSet := range arcSrcSets {
 		filePrefix := strings.TrimSuffix(arcSrcSet.Filename, fileSuffix)
-		filename := fmt.Sprintf("%s.%s.gen%s", filePrefix, config.ColumnTagGo(), fileSuffix)
+		filename := fmt.Sprintf("%s.%s.gen%s", filePrefix, config.GoColumnTag(), fileSuffix)
 		const rw_r__r__ = 0o644 //nolint:revive,stylecheck // rw-r--r--
 		f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rw_r__r__)
 		if err != nil {
@@ -79,7 +79,7 @@ func fprint(osFile io.Writer, buf buffer, arcSrcSet *ARCSourceSet) error {
 		for _, field := range arcSrc.StructType.Fields.List {
 			if field.Tag != nil {
 				tag := reflect.StructTag(strings.Trim(field.Tag.Value, "`"))
-				switch columnName := tag.Get(config.ColumnTagGo()); columnName {
+				switch columnName := tag.Get(config.GoColumnTag()); columnName {
 				case "", "-":
 					logs.Trace.Printf("SKIP: %s: field.Names=%s, columnName=%q", arcSrc.Source.String(), field.Names, columnName)
 					// noop
@@ -125,7 +125,7 @@ func extractTableNameFromCommentGroup(commentGroup *ast.CommentGroup) string {
 		}
 	}
 
-	logs.Debug.Printf("WARN: table name in comment not found: `// \"%s\": table: *`: comment=%q", config.ColumnTagGo(), commentGroup.Text())
+	logs.Debug.Printf("WARN: table name in comment not found: `// \"%s\": table: *`: comment=%q", config.GoColumnTag(), commentGroup.Text())
 	return ""
 }
 

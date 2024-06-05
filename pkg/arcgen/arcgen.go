@@ -15,7 +15,8 @@ import (
 )
 
 func ARCGen(ctx context.Context) error {
-	if _, err := config.Load(ctx); err != nil {
+	_, remainingArgs, err := config.Load(ctx)
+	if err != nil {
 		if errors.Is(err, cliz.ErrHelp) {
 			return nil
 		}
@@ -30,11 +31,15 @@ func ARCGen(ctx context.Context) error {
 		return nil
 	}
 
-	src := config.Source()
-	logs.Info.Printf("source: %s", src)
+	if len(remainingArgs) == 0 {
+		remainingArgs = []string{"/dev/stdin"}
+	}
 
-	if err := generate(ctx, src); err != nil {
-		return errorz.Errorf("parse: %w", err)
+	for _, src := range remainingArgs {
+		logs.Info.Printf("source: %s", src)
+		if err := generate(ctx, src); err != nil {
+			return errorz.Errorf("parse: %w", err)
+		}
 	}
 
 	return nil

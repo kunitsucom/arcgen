@@ -16,7 +16,7 @@ type (
 		Source token.Position
 		// TypeSpec is used to guess the table name if the CREATE TABLE annotation is not found.
 		TypeSpec *ast.TypeSpec
-		// StructType is used to determine the column name. If the tag specified by --column-tag-go is not found, the field name is used.
+		// StructType is used to determine the column name. If the tag specified by --go-column-tag is not found, the field name is used.
 		StructType   *ast.StructType
 		CommentGroup *ast.CommentGroup
 	}
@@ -31,21 +31,21 @@ type (
 
 //nolint:gochecknoglobals
 var (
-	_ColumnTagGoCommentLineRegex     *regexp.Regexp
-	_ColumnTagGoCommentLineRegexOnce sync.Once
+	_GoColumnTagCommentLineRegex     *regexp.Regexp
+	_GoColumnTagCommentLineRegexOnce sync.Once
 )
 
 const (
 	//	                                             _____________ <- 1. comment prefix
 	//	                                                             __ <- 2. tag name
 	//	                                                                               ___ <- 4. comment suffix
-	_ColumnTagGoCommentLineRegexFormat       = `^\s*(//+\s*|/\*\s*)?(%s)\s*:\s*(.*)\s*(\*/)?`
-	_ColumnTagGoCommentLineRegexContentIndex = /*                               ^^ 3. tag value */ 3
+	_GoColumnTagCommentLineRegexFormat       = `^\s*(//+\s*|/\*\s*)?(%s)\s*:\s*(.*)\s*(\*/)?`
+	_GoColumnTagCommentLineRegexContentIndex = /*                               ^^ 3. tag value */ 3
 )
 
-func ColumnTagGoCommentLineRegex() *regexp.Regexp {
-	_ColumnTagGoCommentLineRegexOnce.Do(func() {
-		_ColumnTagGoCommentLineRegex = regexp.MustCompile(fmt.Sprintf(_ColumnTagGoCommentLineRegexFormat, config.ColumnTagGo()))
+func GoColumnTagCommentLineRegex() *regexp.Regexp {
+	_GoColumnTagCommentLineRegexOnce.Do(func() {
+		_GoColumnTagCommentLineRegex = regexp.MustCompile(fmt.Sprintf(_GoColumnTagCommentLineRegexFormat, config.GoColumnTag()))
 	})
-	return _ColumnTagGoCommentLineRegex
+	return _GoColumnTagCommentLineRegex
 }

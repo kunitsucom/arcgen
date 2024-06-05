@@ -22,24 +22,24 @@ package sample
 
 // User is a user model struct.
 //
-// db: table: Users
+//db:table Users
 type User struct {
-    ID   int64  `db:"Id"   spanddl:"STRING(36)  NOT NULL"`
-    Name string `db:"Name" spanddl:"STRING(255) NOT NULL"`
-    Age  int64  `db:"Age"  spanddl:"INT64       NOT NULL"`
+    ID   int64  `db:"Id"   ddlspanner:"STRING(36)  NOT NULL" pk:"true"`
+    Name string `db:"Name" ddlspanner:"STRING(255) NOT NULL"`
+    Age  int64  `db:"Age"  ddlspanner:"INT64       NOT NULL"`
 }
 
 // Group is a group model struct.
 //
 type Group struct {
-    ID          int64  `db:"Id"          spanddl:"STRING(36)   NOT NULL"`
-    Name        string `db:"Name"        spanddl:"STRING(255)  NOT NULL"`
-    Description string `db:"Description" spanddl:"STRING(2048) NOT NULL"`
+    ID          int64  `db:"Id"          ddlspanner:"STRING(36)   NOT NULL" pk:"true"`
+    Name        string `db:"Name"        ddlspanner:"STRING(255)  NOT NULL"`
+    Description string `db:"Description" ddlspanner:"STRING(2048) NOT NULL"`
 }
 EOF
 
 $ # == 2. generate file ================================
-$ arcgen --method-name-table TableName --method-name-columns ColumnNames --method-prefix-column ColumnName_ --slice-type-suffix Slice --src /tmp/sample.go
+$ arcgen --method-name-table TableName --method-name-columns ColumnNames --method-prefix-column ColumnName_ --slice-type-suffix Slice /tmp/sample.go
 INFO: 2023/11/12 03:56:59 arcgen.go:33: source: /tmp/sample.go
 
 $ # == 3. Check generated file ================================
@@ -51,13 +51,13 @@ $ cat /tmp/sample.db.gen.go
 package sample
 
 func (s *User) TableName() string {
-    return "Users"
+    return "User"
 }
 
 type UserSlice []*User
 
 func (s UserSlice) TableName() string {
-    return "Users"
+    return "User"
 }
 
 func (s *User) ColumnNames() []string {
@@ -156,7 +156,7 @@ go install github.com/kunitsucom/arcgen/cmd/arcgen@latest
 ```console
 $ arcgen --help
 Usage:
-    arcgen [options]
+    arcgen [options] [source file or directory] ...
 
 Description:
     Generate methods that return information such as DB table names and column names from Go struct tags.
@@ -170,9 +170,7 @@ options:
         debug mode
     --lang (env: ARCGEN_LANGUAGE, default: go)
         programming language to generate DDL
-    --src (env: ARCGEN_SOURCE, default: /dev/stdin)
-        source file or directory
-    --column-tag-go (env: ARCGEN_COLUMN_TAG_GO, default: db)
+    --go-column-tag (env: ARCGEN_GO_COLUMN_TAG, default: db)
         column annotation key for Go struct tag
     --method-name-table (env: ARCGEN_METHOD_NAME_TABLE, default: TableName)
         method name for table

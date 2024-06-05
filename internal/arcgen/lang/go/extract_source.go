@@ -29,7 +29,7 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 			switch t := n.Type.(type) {
 			case *goast.StructType:
 				structType := t
-				if hasColumnTagGo(t) {
+				if hasGoColumnTag(t) {
 					pos := fset.Position(structType.Pos())
 					logs.Debug.Printf("🔍: %s: type=%s", pos.String(), n.Name.Name)
 					arcSrcMap[pos.String()] = &ARCSource{
@@ -54,8 +54,8 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 			for _, commentLine := range commentGroup.List {
 				commentGroup := commentGroup // MEMO: Using the variable on range scope `commentGroup` in function literal (scopelint)
 				logs.Trace.Printf("commentLine=%s: %s", filepathz.Short(fset.Position(commentGroup.Pos()).String()), commentLine.Text)
-				// NOTE: If the comment line matches the ColumnTagGo, it is assumed to be a comment line for the struct.
-				if matches := ColumnTagGoCommentLineRegex().FindStringSubmatch(commentLine.Text); len(matches) > _ColumnTagGoCommentLineRegexContentIndex {
+				// NOTE: If the comment line matches the GoColumnTag, it is assumed to be a comment line for the struct.
+				if matches := GoColumnTagCommentLineRegex().FindStringSubmatch(commentLine.Text); len(matches) > _GoColumnTagCommentLineRegexContentIndex {
 					goast.Inspect(commentedNode, func(node goast.Node) bool {
 						switch n := node.(type) {
 						case *goast.TypeSpec:
@@ -63,7 +63,7 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 							switch t := n.Type.(type) {
 							case *goast.StructType:
 								structType := t
-								if hasColumnTagGo(t) {
+								if hasGoColumnTag(t) {
 									pos := fset.Position(structType.Pos())
 									logs.Debug.Printf("🖋️: %s: overwrite with comment group: type=%s", fset.Position(t.Pos()).String(), n.Name.Name)
 									arcSrcMap[pos.String()] = &ARCSource{
@@ -80,7 +80,7 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 						}
 						return true
 					})
-					break CommentGroupLoop // NOTE: There may be multiple "ColumnTagGo"s in the same commentGroup, so once you find the first one, break.
+					break CommentGroupLoop // NOTE: There may be multiple "GoColumnTag"s in the same commentGroup, so once you find the first one, break.
 				}
 			}
 		}
@@ -98,7 +98,7 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 	}
 
 	if len(arcSrcSet.ARCSources) == 0 {
-		return nil, errorz.Errorf("column-tag-go=%s: %w", config.ColumnTagGo(), apperr.ErrColumnTagGoAnnotationNotFoundInSource)
+		return nil, errorz.Errorf("go-column-tag=%s: %w", config.GoColumnTag(), apperr.ErrGoColumnTagAnnotationNotFoundInSource)
 	}
 
 	sort.Slice(arcSrcSet.ARCSources, func(i, j int) bool {
@@ -109,11 +109,11 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 	return arcSrcSet, nil
 }
 
-func hasColumnTagGo(s *goast.StructType) bool {
+func hasGoColumnTag(s *goast.StructType) bool {
 	for _, field := range s.Fields.List {
 		if field.Tag != nil {
 			tag := reflect.StructTag(strings.Trim(field.Tag.Value, "`"))
-			if columnName := tag.Get(config.ColumnTagGo()); columnName != "" {
+			if columnName := tag.Get(config.GoColumnTag()); columnName != "" {
 				return true
 			}
 		}
