@@ -41,6 +41,8 @@ clean:  ## Clean up cache, etc
 
 .PHONY: lint
 lint:  ## Run secretlint, go mod tidy, golangci-lint
+	# typo
+	typos
 	# tidy
 	go mod tidy
 	git diff --exit-code go.mod go.sum

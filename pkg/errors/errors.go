@@ -3,6 +3,7 @@ package errors
 import "errors"
 
 var (
+	ErrSourceFileOrDirectoryIsNotSet         = errors.New("source file or directory is not set")
 	ErrInvalidSourceSet                      = errors.New("invalid source set")
-	ErrColumnTagGoAnnotationNotFoundInSource = errors.New("column-tag-go annotation not found in source")
+	ErrGoColumnTagAnnotationNotFoundInSource = errors.New("go-column-tag annotation not found in source")
 )

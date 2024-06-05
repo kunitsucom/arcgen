@@ -57,7 +57,7 @@ func walkDirFn(ctx context.Context, arcSrcSets *ARCSourceSets) func(path string,
 
 		arcSrcSet, err := parseFile(ctx, path)
 		if err != nil {
-			if errors.Is(err, apperr.ErrColumnTagGoAnnotationNotFoundInSource) {
+			if errors.Is(err, apperr.ErrGoColumnTagAnnotationNotFoundInSource) {
 				logs.Debug.Printf("SKIP: parseFile: file=%s: %v", path, err)
 				return nil
 			}

@@ -6,28 +6,18 @@ run:
 linters:
   enable-all: true
   disable:
-    - deadcode # deprecated (since v1.49.0) due to: The owner seems to have abandoned the linter. Replaced by unused.
     - depguard # unnecessary
     - dupl # too many unnecessary detections
     - exhaustruct # https://github.com/GaijinEntertainment/go-exhaustruct
-    - exhaustivestruct # https://github.com/mbilski/exhaustivestruct
     - gci # unnecessary
     - goconst # unnecessary
     - godox # unnecessary
-    - golint # deprecated https://github.com/golang/lint
     - gomnd # deprecated https://github.com/tommy-muehle/go-mnd
-    - ifshort # for readability
-    - interfacer # deprecated https://github.com/mvdan/interfacer
     - interfacebloat # unnecessary
     - lll # unnecessary
-    - maligned # deprecated https://github.com/mdempsky/maligned
     - nlreturn # ignore "return with no blank line before"
     - nolintlint # unnecessary
     - nonamedreturns # unnecessary
-    - nosnakecase # for environment variable key
-    - scopelint # deprecated (since v1.39.0) due to: The repository of the linter has been deprecated by the owner. Replaced by exportloopref.
-    - structcheck # deprecated (since v1.49.0) due to: The owner seems to have abandoned the linter. Replaced by unused.
-    - varcheck # deprecated (since v1.49.0) due to: The owner seems to have abandoned the linter. Replaced by unused.
     - varnamelen # unnecessary
     - wsl # ignore "declarations should never be cuddled"
 
