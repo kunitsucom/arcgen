@@ -16,7 +16,7 @@ func Test_walkDirFn(t *testing.T) {
 		t.Parallel()
 
 		ctx := context.Background()
-		arcSrcSets := make(ARCSourceSets, 0)
+		arcSrcSets := make(ARCSourceSetSlice, 0)
 		require.ErrorIs(t, walkDirFn(ctx, &arcSrcSets)("tests", nil, os.ErrNotExist), os.ErrNotExist)
 	})
 }

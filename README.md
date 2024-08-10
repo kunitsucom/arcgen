@@ -39,7 +39,7 @@ type Group struct {
 EOF
 
 $ # == 2. generate file ================================
-$ arcgen --method-name-table TableName --method-name-columns ColumnNames --method-prefix-column ColumnName_ --slice-type-suffix Slice /tmp/sample.go
+$ arcgen --go-method-name-table TableName --go-method-name-columns ColumnNames --go-method-prefix-column ColumnName_ --go-slice-type-suffix Slice /tmp/sample.go
 INFO: 2023/11/12 03:56:59 arcgen.go:33: source: /tmp/sample.go
 
 $ # == 3. Check generated file ================================
@@ -172,13 +172,13 @@ options:
         programming language to generate DDL
     --go-column-tag (env: ARCGEN_GO_COLUMN_TAG, default: db)
         column annotation key for Go struct tag
-    --method-name-table (env: ARCGEN_METHOD_NAME_TABLE, default: TableName)
+    --go-method-name-table (env: ARCGEN_METHOD_NAME_TABLE, default: TableName)
         method name for table
-    --method-name-columns (env: ARCGEN_METHOD_NAME_COLUMNS, default: ColumnNames)
+    --go-method-name-columns (env: ARCGEN_METHOD_NAME_COLUMNS, default: ColumnNames)
         method name for columns
-    --method-prefix-column (env: ARCGEN_METHOD_PREFIX_COLUMN, default: ColumnName_)
+    --go-method-prefix-column (env: ARCGEN_METHOD_PREFIX_COLUMN, default: ColumnName_)
         method prefix for column name
-    --slice-type-suffix (env: ARCGEN_SLICE_TYPE_SUFFIX, default: )
+    --go-slice-type-suffix (env: ARCGEN_SLICE_TYPE_SUFFIX, default: )
         suffix for slice type
     --help (default: false)
         show usage

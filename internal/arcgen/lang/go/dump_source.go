@@ -11,7 +11,7 @@ import (
 
 func dumpSource(fset *token.FileSet, arcSrcSet *ARCSourceSet) {
 	if arcSrcSet != nil {
-		for _, arcSrc := range arcSrcSet.ARCSources {
+		for _, arcSrc := range arcSrcSet.ARCSourceSlice {
 			logs.Trace.Print("== Source ================================================================================================================================")
 			_, _ = io.WriteString(logs.Trace.LineWriter("r.CommentGroup.Text: "), arcSrc.CommentGroup.Text())
 			logs.Trace.Print("-- CommentGroup --------------------------------------------------------------------------------------------------------------------------------")
