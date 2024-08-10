@@ -6,11 +6,11 @@ import (
 	"os"
 
 	"github.com/kunitsucom/arcgen/internal/contexts"
-	"github.com/kunitsucom/arcgen/pkg/arcgen"
+	"github.com/kunitsucom/arcgen/pkg/entrypoint/arcgen"
 )
 
 func main() {
-	if err := arcgen.ARCGen(contexts.WithArgs(context.Background(), os.Args)); err != nil {
+	if err := arcgen.Run(contexts.WithArgs(context.Background(), os.Args)); err != nil {
 		log.Fatalf("arcgen: %+v", err)
 	}
 }

@@ -16,7 +16,7 @@ import (
 	apperr "github.com/kunitsucom/arcgen/pkg/errors"
 )
 
-func parse(ctx context.Context, src string) (ARCSourceSets, error) {
+func parse(ctx context.Context, src string) (ARCSourceSetSlice, error) {
 	// MEMO: get absolute path for parser.ParseFile()
 	sourceAbs := util.Abs(src)
 
@@ -26,7 +26,7 @@ func parse(ctx context.Context, src string) (ARCSourceSets, error) {
 	}
 
 	if info.IsDir() {
-		arcSrcSets := make(ARCSourceSets, 0)
+		arcSrcSets := make(ARCSourceSetSlice, 0)
 		if err := filepath.WalkDir(sourceAbs, walkDirFn(ctx, &arcSrcSets)); err != nil {
 			return nil, errorz.Errorf("filepath.WalkDir: %w", err)
 		}
@@ -39,19 +39,19 @@ func parse(ctx context.Context, src string) (ARCSourceSets, error) {
 		return nil, errorz.Errorf("parseFile: file=%s: %v", sourceAbs, err)
 	}
 
-	return ARCSourceSets{arcSrcSet}, nil
+	return ARCSourceSetSlice{arcSrcSet}, nil
 }
 
 //nolint:gochecknoglobals
-var fileSuffix = ".go"
+var fileExt = ".go"
 
-func walkDirFn(ctx context.Context, arcSrcSets *ARCSourceSets) func(path string, d os.DirEntry, err error) error {
+func walkDirFn(ctx context.Context, arcSrcSets *ARCSourceSetSlice) func(path string, d os.DirEntry, err error) error {
 	return func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err //nolint:wrapcheck
 		}
 
-		if d.IsDir() || !strings.HasSuffix(path, fileSuffix) || strings.HasSuffix(path, "_test.go") {
+		if d.IsDir() || !strings.HasSuffix(path, fileExt) || strings.HasSuffix(path, "_test.go") {
 			return nil
 		}
 

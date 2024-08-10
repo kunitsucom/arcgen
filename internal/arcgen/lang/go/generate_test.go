@@ -23,21 +23,21 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"arcgen",
 			"--go-column-tag=dbtest",
-			"--method-name-table=GetTableName",
-			"--method-name-columns=GetColumnNames",
-			"--method-prefix-column=GetColumnName_",
-			"--slice-type-suffix=Slice",
+			"--go-method-name-table=GetTableName",
+			"--go-method-name-columns=GetColumnNames",
+			"--go-method-prefix-column=GetColumnName_",
+			"--go-slice-type-suffix=Slice",
 			// "tests/common.source",
 			"tests",
 		})
 
-		backup := fileSuffix
-		t.Cleanup(func() { fileSuffix = backup })
+		backup := fileExt
+		t.Cleanup(func() { fileExt = backup })
 
 		_, remainingArgs, err := config.Load(ctx)
 		require.NoError(t, err)
 
-		fileSuffix = ".source"
+		fileExt = ".source"
 		for _, src := range remainingArgs {
 			require.NoError(t, Generate(ctx, src))
 		}
@@ -63,19 +63,19 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"arcgen",
 			"--go-column-tag=dbtest",
-			"--method-name-table=GetTableName",
-			"--method-name-columns=GetColumnNames",
-			"--method-prefix-column=GetColumnName_",
+			"--go-method-name-table=GetTableName",
+			"--go-method-name-columns=GetColumnNames",
+			"--go-method-prefix-column=GetColumnName_",
 			"tests/no.errsource",
 		})
 
-		backup := fileSuffix
-		t.Cleanup(func() { fileSuffix = backup })
+		backup := fileExt
+		t.Cleanup(func() { fileExt = backup })
 
 		_, remainingArgs, err := config.Load(ctx)
 		require.NoError(t, err)
 
-		fileSuffix = ".source"
+		fileExt = ".source"
 		for _, src := range remainingArgs {
 			require.ErrorContains(t, Generate(ctx, src), "expected 'package', found 'EOF'")
 		}
@@ -85,19 +85,19 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"arcgen",
 			"--go-column-tag=dbtest",
-			"--method-name-table=GetTableName",
-			"--method-name-columns=GetColumnNames",
-			"--method-prefix-column=GetColumnName_",
+			"--go-method-name-table=GetTableName",
+			"--go-method-name-columns=GetColumnNames",
+			"--go-method-prefix-column=GetColumnName_",
 			"tests",
 		})
 
-		backup := fileSuffix
-		t.Cleanup(func() { fileSuffix = backup })
+		backup := fileExt
+		t.Cleanup(func() { fileExt = backup })
 
 		_, remainingArgs, err := config.Load(ctx)
 		require.NoError(t, err)
 
-		fileSuffix = ".errsource"
+		fileExt = ".errsource"
 		for _, src := range remainingArgs {
 			require.ErrorContains(t, Generate(ctx, src), "expected 'package', found 'EOF'")
 		}
@@ -107,19 +107,19 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"arcgen",
 			"--go-column-tag=dbtest",
-			"--method-name-table=GetTableName",
-			"--method-name-columns=GetColumnNames",
-			"--method-prefix-column=GetColumnName_",
+			"--go-method-name-table=GetTableName",
+			"--go-method-name-columns=GetColumnNames",
+			"--go-method-prefix-column=GetColumnName_",
 			"tests/no-such-file-or-directory",
 		})
 
-		backup := fileSuffix
-		t.Cleanup(func() { fileSuffix = backup })
+		backup := fileExt
+		t.Cleanup(func() { fileExt = backup })
 
 		_, remainingArgs, err := config.Load(ctx)
 		require.NoError(t, err)
 
-		fileSuffix = ".source"
+		fileExt = ".source"
 		for _, src := range remainingArgs {
 			require.ErrorContains(t, Generate(ctx, src), "no such file or directory")
 		}
@@ -129,19 +129,19 @@ func TestGenerate(t *testing.T) {
 		ctx := contexts.WithArgs(context.Background(), []string{
 			"arcgen",
 			"--go-column-tag=dbtest",
-			"--method-name-table=GetTableName",
-			"--method-name-columns=GetColumnNames",
-			"--method-prefix-column=GetColumnName_",
+			"--go-method-name-table=GetTableName",
+			"--go-method-name-columns=GetColumnNames",
+			"--go-method-prefix-column=GetColumnName_",
 			"tests/directory.dir",
 		})
 
-		backup := fileSuffix
-		t.Cleanup(func() { fileSuffix = backup })
+		backup := fileExt
+		t.Cleanup(func() { fileExt = backup })
 
 		_, remainingArgs, err := config.Load(ctx)
 		require.NoError(t, err)
 
-		fileSuffix = ".dir"
+		fileExt = ".dir"
 		for _, src := range remainingArgs {
 			require.ErrorContains(t, Generate(ctx, src), "is a directory")
 		}
@@ -166,17 +166,17 @@ func (w *testBuffer) String() string {
 //nolint:paralleltest
 func Test_generate(t *testing.T) {
 	t.Run("failure,os.OpenFile", func(t *testing.T) {
-		arcSrcSets := ARCSourceSets{
+		arcSrcSets := ARCSourceSetSlice{
 			&ARCSourceSet{
 				Filename: "tests/invalid-source-set",
-				ARCSources: []*ARCSource{
+				ARCSourceSlice: []*ARCSource{
 					nil,
 				},
 			},
 		}
-		backup := fileSuffix
-		t.Cleanup(func() { fileSuffix = backup })
-		fileSuffix = ".invalid-source-set"
+		backup := fileExt
+		t.Cleanup(func() { fileExt = backup })
+		fileExt = ".invalid-source-set"
 		err := generate(arcSrcSets)
 		require.ErrorIs(t, err, errors.ErrInvalidSourceSet)
 	})
@@ -185,7 +185,7 @@ func Test_generate(t *testing.T) {
 func newTestARCSourceSet() *ARCSourceSet {
 	return &ARCSourceSet{
 		PackageName: "testpkg",
-		ARCSources: []*ARCSource{
+		ARCSourceSlice: []*ARCSource{
 			{
 				TypeSpec: &goast.TypeSpec{
 					Name: &goast.Ident{
@@ -226,7 +226,7 @@ func Test_sprint(t *testing.T) {
 			},
 		}
 		arcSrcSet := newTestARCSourceSet()
-		err := fprint(nil, buf, arcSrcSet)
+		err := fprintColumns(nil, buf, arcSrcSet)
 		require.ErrorIs(t, err, io.ErrClosedPipe)
 	})
 
@@ -238,7 +238,7 @@ func Test_sprint(t *testing.T) {
 			},
 		}
 		arcSrcSet := newTestARCSourceSet()
-		err := fprint(f, bytes.NewBuffer(nil), arcSrcSet)
+		err := fprintColumns(f, bytes.NewBuffer(nil), arcSrcSet)
 		require.ErrorIs(t, err, io.ErrClosedPipe)
 	})
 }

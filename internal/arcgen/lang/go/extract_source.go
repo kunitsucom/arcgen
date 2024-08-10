@@ -87,23 +87,23 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 	}
 
 	arcSrcSet := &ARCSourceSet{
-		Filename:    fset.Position(f.Pos()).Filename,
-		PackageName: f.Name.Name,
-		Source:      fset.Position(f.Pos()),
-		ARCSources:  make([]*ARCSource, 0),
+		Filename:       fset.Position(f.Pos()).Filename,
+		PackageName:    f.Name.Name,
+		Source:         fset.Position(f.Pos()),
+		ARCSourceSlice: make([]*ARCSource, 0),
 	}
 
 	for _, arcSrc := range arcSrcMap {
-		arcSrcSet.ARCSources = append(arcSrcSet.ARCSources, arcSrc)
+		arcSrcSet.ARCSourceSlice = append(arcSrcSet.ARCSourceSlice, arcSrc)
 	}
 
-	if len(arcSrcSet.ARCSources) == 0 {
+	if len(arcSrcSet.ARCSourceSlice) == 0 {
 		return nil, errorz.Errorf("go-column-tag=%s: %w", config.GoColumnTag(), apperr.ErrGoColumnTagAnnotationNotFoundInSource)
 	}
 
-	sort.Slice(arcSrcSet.ARCSources, func(i, j int) bool {
-		return fmt.Sprintf("%s:%07d", arcSrcSet.ARCSources[i].Source.Filename, arcSrcSet.ARCSources[i].Source.Line) <
-			fmt.Sprintf("%s:%07d", arcSrcSet.ARCSources[j].Source.Filename, arcSrcSet.ARCSources[j].Source.Line)
+	sort.Slice(arcSrcSet.ARCSourceSlice, func(i, j int) bool {
+		return fmt.Sprintf("%s:%07d", arcSrcSet.ARCSourceSlice[i].Source.Filename, arcSrcSet.ARCSourceSlice[i].Source.Line) <
+			fmt.Sprintf("%s:%07d", arcSrcSet.ARCSourceSlice[j].Source.Filename, arcSrcSet.ARCSourceSlice[j].Source.Line)
 	})
 
 	return arcSrcSet, nil

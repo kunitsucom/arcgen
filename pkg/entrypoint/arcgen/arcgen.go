@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	errorz "github.com/kunitsucom/util.go/errors"
 	cliz "github.com/kunitsucom/util.go/exp/cli"
@@ -14,7 +15,7 @@ import (
 	"github.com/kunitsucom/arcgen/internal/logs"
 )
 
-func ARCGen(ctx context.Context) error {
+func Run(ctx context.Context) error {
 	_, remainingArgs, err := config.Load(ctx)
 	if err != nil {
 		if errors.Is(err, cliz.ErrHelp) {
@@ -24,10 +25,10 @@ func ARCGen(ctx context.Context) error {
 	}
 
 	if config.Version() {
-		fmt.Printf("version: %s\n", version.Version())           //nolint:forbidigo
-		fmt.Printf("revision: %s\n", version.Revision())         //nolint:forbidigo
-		fmt.Printf("build branch: %s\n", version.Branch())       //nolint:forbidigo
-		fmt.Printf("build timestamp: %s\n", version.Timestamp()) //nolint:forbidigo
+		fmt.Fprintf(os.Stdout, "version: %s\n", version.Version())
+		fmt.Fprintf(os.Stdout, "revision: %s\n", version.Revision())
+		fmt.Fprintf(os.Stdout, "build branch: %s\n", version.Branch())
+		fmt.Fprintf(os.Stdout, "build timestamp: %s\n", version.Timestamp())
 		return nil
 	}
 
