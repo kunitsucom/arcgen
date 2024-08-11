@@ -124,6 +124,22 @@ func (t *TableInfo) HasOneTagColumnsByTag() map[string][]*ColumnInfo {
 	return columns
 }
 
+func (t *TableInfo) HasManyTagColumnsByTag() map[string][]*ColumnInfo {
+	columns := make(map[string][]*ColumnInfo)
+	for _, hasManyTagInTable := range t.HasManyTags {
+		columns[hasManyTagInTable] = make([]*ColumnInfo, 0, len(t.Columns))
+		for _, column := range t.Columns {
+			for _, hasManyTag := range column.HasManyTags {
+				if hasManyTagInTable == hasManyTag {
+					columns[hasManyTag] = append(columns[hasManyTag], column)
+				}
+			}
+		}
+	}
+
+	return columns
+}
+
 type ColumnInfo struct {
 	FieldName   string
 	FieldType   string
@@ -181,6 +197,14 @@ func (a *ARCSource) extractFieldNamesAndColumnNames() *TableInfo {
 						logs.Trace.Printf("%s: field.Names=%s, hasOneTag=%q", a.Source.String(), field.Names, hasOneTag)
 						tableInfo.HasOneTags = append(tableInfo.HasOneTags, hasOneTag)
 						columnInfo.HasOneTags = append(columnInfo.HasOneTags, hasOneTag)
+					}
+				}
+				// hasMany tag
+				for _, hasManyTag := range strings.Split(tag.Get(config.GoHasManyTag()), ",") {
+					if hasManyTag != "" {
+						logs.Trace.Printf("%s: field.Names=%s, hasManyTag=%q", a.Source.String(), field.Names, hasManyTag)
+						tableInfo.HasManyTags = append(tableInfo.HasManyTags, hasManyTag)
+						columnInfo.HasManyTags = append(columnInfo.HasManyTags, hasManyTag)
 					}
 				}
 

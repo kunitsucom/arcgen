@@ -24,6 +24,7 @@ type config struct {
 	GoColumnTag          string `json:"go_column_tag"`
 	GoCRUDPackagePath    string `json:"go_crud_package_path"`
 	GoCRUDPackageName    string `json:"go_crud_package_name"`
+	GoHasManyTag         string `json:"go_has_many_tag"`
 	GoHasOneTag          string `json:"go_has_one_tag"`
 	GoMethodNameTable    string `json:"go_method_name_table"`
 	GoMethodNameColumns  string `json:"go_method_name_columns"`
@@ -91,6 +92,9 @@ const (
 	_OptionGoCRUDPackageName = "go-crud-package-name"
 	_EnvKeyGoCRUDPackageName = "ARCGEN_GO_CRUD_PACKAGE_NAME"
 
+	_OptionGoHasManyTag = "go-has-many-tag"
+	_EnvKeyGoHasManyTag = "ARCGEN_GO_HAS_MANY_TAG"
+
 	_OptionGoHasOneTag = "go-has-one-tag"
 	_EnvKeyGoHasOneTag = "ARCGEN_GO_HAS_ONE_TAG"
 
@@ -156,8 +160,13 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 				Default:     cliz.Default(""),
 			},
 			&cliz.StringOption{
+				Name: _OptionGoHasManyTag, Environment: _EnvKeyGoHasManyTag,
+				Description: "\"hasMany\" annotation key for Go struct tag",
+				Default:     cliz.Default("hasMany"),
+			},
+			&cliz.StringOption{
 				Name: _OptionGoHasOneTag, Environment: _EnvKeyGoHasOneTag,
-				Description: "has one annotation key for Go struct tag",
+				Description: "\"hasOne\" annotation key for Go struct tag",
 				Default:     cliz.Default("hasOne"),
 			},
 			&cliz.StringOption{
@@ -202,6 +211,7 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 		GoColumnTag:          loadGoColumnTag(ctx, cmd),
 		GoCRUDPackagePath:    loadGoCRUDPackagePath(ctx, cmd),
 		GoCRUDPackageName:    loadGoCRUDPackageName(ctx, cmd),
+		GoHasManyTag:         loadGoHasManyTag(ctx, cmd),
 		GoHasOneTag:          loadGoHasOneTag(ctx, cmd),
 		GoMethodNameTable:    loadGoMethodNameTable(ctx, cmd),
 		GoMethodNameColumns:  loadGoMethodNameColumns(ctx, cmd),
