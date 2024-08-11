@@ -163,6 +163,7 @@ func fieldName(x ast.Expr) *ast.Ident {
 	return nil
 }
 
+//nolint:cyclop
 func (a *ARCSource) extractFieldNamesAndColumnNames() *TableInfo {
 	tableInfo := &TableInfo{
 		Columns: make([]*ColumnInfo, 0, len(a.StructType.Fields.List)),
