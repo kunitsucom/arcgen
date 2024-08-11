@@ -26,6 +26,8 @@ type config struct {
 	GoMethodNameColumns  string `json:"go_method_name_columns"`
 	GoMethodPrefixColumn string `json:"go_method_prefix_column"`
 	GoSliceTypeSuffix    string `json:"go_slice_type_suffix"`
+	GoCRUDPackagePath    string `json:"go_crud_package_path"`
+	GoCRUDPackageName    string `json:"go_crud_package_name"`
 }
 
 //nolint:gochecknoglobals
@@ -92,6 +94,12 @@ const (
 
 	_OptionGoSliceTypeSuffix = "go-slice-type-suffix"
 	_EnvKeyGoSliceTypeSuffix = "ARCGEN_GO_SLICE_TYPE_SUFFIX"
+
+	_OptionGoCRUDPackagePath = "go-crud-package-path"
+	_EnvKeyGoCRUDPackagePath = "ARCGEN_GO_CRUD_PACKAGE_PATH"
+
+	_OptionGoCRUDPackageName = "go-crud-package-name"
+	_EnvKeyGoCRUDPackageName = "ARCGEN_GO_CRUD_PACKAGE_NAME"
 )
 
 // MEMO: Since there is a possibility of returning some kind of error in the future, the signature is made to return an error.
@@ -155,6 +163,18 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 				Name:        _OptionGoSliceTypeSuffix,
 				Environment: _EnvKeyGoSliceTypeSuffix,
 				Description: "suffix for slice type",
+				Default:     cliz.Default("Slice"),
+			},
+			&cliz.StringOption{
+				Name:        _OptionGoCRUDPackagePath,
+				Environment: _EnvKeyGoCRUDPackagePath,
+				Description: "package path for CRUD",
+				Default:     cliz.Default(""),
+			},
+			&cliz.StringOption{
+				Name:        _OptionGoCRUDPackageName,
+				Environment: _EnvKeyGoCRUDPackageName,
+				Description: "package name for CRUD",
 				Default:     cliz.Default(""),
 			},
 		},
@@ -176,6 +196,8 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 		GoMethodNameColumns:  loadGoMethodNameColumns(ctx, cmd),
 		GoMethodPrefixColumn: loadGoMethodPrefixColumn(ctx, cmd),
 		GoSliceTypeSuffix:    loadGoSliceTypeSuffix(ctx, cmd),
+		GoCRUDPackagePath:    loadGoCRUDPackagePath(ctx, cmd),
+		GoCRUDPackageName:    loadGoCRUDPackageName(ctx, cmd),
 	}
 
 	if c.Debug {

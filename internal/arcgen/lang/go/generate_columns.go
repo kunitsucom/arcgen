@@ -14,7 +14,7 @@ import (
 	"github.com/kunitsucom/arcgen/pkg/errors"
 )
 
-func fprintColumns(osFile io.Writer, buf buffer, arcSrcSet *ARCSourceSet) error {
+func fprintColumns(osFile osFile, buf buffer, arcSrcSet *ARCSourceSet) error {
 	content, err := generateColumnsFileContent(buf, arcSrcSet)
 	if err != nil {
 		return errorz.Errorf("generateColumnsFile: %w", err)
@@ -64,7 +64,7 @@ func generateColumnsFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, er
 	}
 
 	// add header comment
-	content := arcSrcSet.generateGoFileHeader() + buf.String()
+	content := arcSrcSet.generateGoFileHeader() + "\n" + buf.String()
 
 	// add blank line between methods
 	content = strings.ReplaceAll(content, "\n}\nfunc ", "\n}\n\nfunc ")

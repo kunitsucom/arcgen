@@ -58,10 +58,12 @@ func walkDirFn(ctx context.Context, arcSrcSets *ARCSourceSetSlice) func(path str
 		arcSrcSet, err := parseFile(ctx, path)
 		if err != nil {
 			if errors.Is(err, apperr.ErrGoColumnTagAnnotationNotFoundInSource) {
-				logs.Debug.Printf("SKIP: parseFile: file=%s: %v", path, err)
+				logs.Debug.Printf("SKIP: parseFile: %v", err)
 				return nil
 			}
-			return errorz.Errorf("parseFile: file=%s: %v", path, err)
+
+			logs.Info.Printf("SKIP NON-GO FILE: parseFile: %v", err)
+			return nil
 		}
 
 		*arcSrcSets = append(*arcSrcSets, arcSrcSet)
@@ -74,12 +76,13 @@ func parseFile(ctx context.Context, filename string) (*ARCSourceSet, error) {
 	fset := token.NewFileSet()
 	rootNode, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
 	if err != nil {
+		// MEMO: parser.ParseFile err contains file path, so no need to log it
 		return nil, errorz.Errorf("parser.ParseFile: %w", err)
 	}
 
 	arcSrcSet, err := extractSource(ctx, fset, rootNode)
 	if err != nil {
-		return nil, errorz.Errorf("extractSource: %w", err)
+		return nil, errorz.Errorf("extractSource: filename=%s: %w", filename, err)
 	}
 
 	dumpSource(fset, arcSrcSet)
