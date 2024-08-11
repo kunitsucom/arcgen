@@ -15,20 +15,20 @@ import (
 
 //nolint:cyclop,funlen
 func Generate(ctx context.Context, src string) error {
-	arcSrcSets, err := parse(ctx, src)
+	arcSrcSetSlice, err := parse(ctx, src)
 	if err != nil {
 		return errorz.Errorf("parse: %w", err)
 	}
 
-	if err := generate(arcSrcSets); err != nil {
+	if err := generate(arcSrcSetSlice); err != nil {
 		return errorz.Errorf("generate: %w", err)
 	}
 
 	return nil
 }
 
-func generate(arcSrcSets ARCSourceSetSlice) error {
-	for _, arcSrcSet := range arcSrcSets {
+func generate(arcSrcSetSlice ARCSourceSetSlice) error {
+	for _, arcSrcSet := range arcSrcSetSlice {
 		const rw_r__r__ = 0o644 //nolint:revive,stylecheck // rw-r--r--
 
 		// closure for defer
