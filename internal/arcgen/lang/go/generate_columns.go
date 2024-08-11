@@ -72,13 +72,23 @@ func generateColumnsFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, er
 	return content, nil
 }
 
-//nolint:funlen
 func appendAST(file *ast.File, structName string, sliceTypeSuffix string, tableName string, methodNameTable string, methodNameColumns string, methodPrefixColumn string, fieldNames, columnNames []string) {
+	file.Decls = append(file.Decls, generateASTTableMethods(structName, sliceTypeSuffix, tableName, methodNameTable)...)
+
+	file.Decls = append(file.Decls, generateASTColumnMethods(structName, sliceTypeSuffix, methodNameColumns, methodPrefixColumn, fieldNames, columnNames)...)
+
+	return //nolint:gosimple
+}
+
+//nolint:funlen
+func generateASTTableMethods(structName string, sliceTypeSuffix string, tableName string, methodNameTable string) []ast.Decl {
+	decls := make([]ast.Decl, 0)
+
 	if tableName != "" {
 		//	func (s *StructName) TableName() string {
 		//		return "TableName"
 		//	}
-		file.Decls = append(file.Decls, &ast.FuncDecl{
+		decls = append(decls, &ast.FuncDecl{
 			Recv: &ast.FieldList{
 				List: []*ast.Field{
 					{
@@ -125,8 +135,8 @@ func appendAST(file *ast.File, structName string, sliceTypeSuffix string, tableN
 
 		// type StructNameSlice []*StructName
 		if sliceTypeSuffix != "" {
-			file.Decls = append(
-				file.Decls,
+			decls = append(
+				decls,
 				&ast.GenDecl{
 					Tok: token.TYPE,
 					Specs: []ast.Spec{
@@ -193,9 +203,7 @@ func appendAST(file *ast.File, structName string, sliceTypeSuffix string, tableN
 		}
 	}
 
-	file.Decls = append(file.Decls, generateASTColumnMethods(structName, sliceTypeSuffix, methodNameColumns, methodPrefixColumn, fieldNames, columnNames)...)
-
-	return //nolint:gosimple
+	return decls
 }
 
 //nolint:funlen

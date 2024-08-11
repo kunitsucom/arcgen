@@ -35,6 +35,10 @@ versenv:
 githooks:
 	@[[ -f "${PRE_PUSH}" ]] || cp -ai "${REPO_ROOT}/.githooks/pre-push" "${PRE_PUSH}"
 
+.PHONY: gobuild
+gobuild:  ## Build arcgen
+	go build -o "${REPO_LOCAL_DIR}/bin/arcgen" ./cmd/arcgen
+
 clean:  ## Clean up cache, etc
 	go clean -x -cache -testcache -modcache -fuzzcache
 	golangci-lint cache clean
