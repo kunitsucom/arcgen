@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-//nolint:funlen
-func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) error {
+//nolint:funlen,unparam
+func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 	for _, arcSrc := range arcSrcSet.ARCSourceSlice {
 		structName := arcSrc.extractStructName()
 		tableName := arcSrc.extractTableNameFromCommentGroup()
@@ -156,5 +156,5 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) error {
 		)
 	}
 
-	return nil
+	return
 }

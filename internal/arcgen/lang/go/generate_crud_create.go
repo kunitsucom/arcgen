@@ -8,40 +8,12 @@ import (
 )
 
 //nolint:funlen
-func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) error {
+func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 	for _, arcSrc := range arcSrcSet.ARCSourceSlice {
 		structName := arcSrc.extractStructName()
 		tableName := arcSrc.extractTableNameFromCommentGroup()
 		tableInfo := arcSrc.extractFieldNamesAndColumnNames()
 		columnNames := tableInfo.ColumnNames()
-
-		// structPackagePath, err := util.GetPackagePath(filepath.Dir(arcSrcSet.Filename))
-		// if err != nil {
-		// 	return errorz.Errorf("GetPackagePath: %w", err)
-		// }
-		// astFile.Decls = append(astFile.Decls,
-		// 	//	import (
-		// 	//		"context"
-		// 	//		"fmt"
-		// 	//
-		// 	//		dao "path/to/your/dao"
-		// 	//	)
-		// 	&ast.GenDecl{
-		// 		Tok: token.IMPORT,
-		// 		Specs: []ast.Spec{
-		// 			&ast.ImportSpec{
-		// 				Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("context")},
-		// 			},
-		// 			&ast.ImportSpec{
-		// 				Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("fmt")},
-		// 			},
-		// 			&ast.ImportSpec{
-		// 				Name: &ast.Ident{Name: "dao"},
-		// 				Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(structPackagePath)},
-		// 			},
-		// 		},
-		// 	},
-		// )
 
 		// const Create{StructName}Query = `INSERT INTO {table_name} ({column_name1}, {column_name2}) VALUES (?, ?)`
 		//
@@ -125,5 +97,5 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) error {
 		)
 	}
 
-	return nil
+	return
 }
