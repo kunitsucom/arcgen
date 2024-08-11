@@ -160,7 +160,7 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 		},
 	}
 
-	remainingArgs, err = cmd.Parse(contexts.Args(ctx))
+	remainingArgs, err = cmd.Parse(contexts.OSArgs(ctx))
 	if err != nil {
 		return nil, nil, errorz.Errorf("cmd.Parse: %w", err)
 	}

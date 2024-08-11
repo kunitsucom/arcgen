@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	if err := arcgen.Run(contexts.WithArgs(context.Background(), os.Args)); err != nil {
+	if err := arcgen.Run(contexts.WithOSArgs(context.Background(), os.Args)); err != nil {
 		log.Fatalf("arcgen: %+v", err)
 	}
 }

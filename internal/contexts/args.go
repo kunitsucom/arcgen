@@ -7,7 +7,7 @@ import (
 
 type contextKeyArgs struct{}
 
-func Args(ctx context.Context) []string {
+func OSArgs(ctx context.Context) []string {
 	if v, ok := ctx.Value(contextKeyArgs{}).([]string); ok {
 		return v
 	}
@@ -15,6 +15,6 @@ func Args(ctx context.Context) []string {
 	return os.Args[0:]
 }
 
-func WithArgs(ctx context.Context, now []string) context.Context {
-	return context.WithValue(ctx, contextKeyArgs{}, now)
+func WithOSArgs(ctx context.Context, osArgs []string) context.Context {
+	return context.WithValue(ctx, contextKeyArgs{}, osArgs)
 }
