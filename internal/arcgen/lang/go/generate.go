@@ -32,13 +32,13 @@ const rw_r__r__ = 0o644 //nolint:revive,stylecheck // rw-r--r--
 
 //nolint:cyclop,funlen,gocognit
 func generate(arcSrcSetSlice ARCSourceSetSlice) error {
-	newExt := fmt.Sprintf(".%s.gen%s", config.GoColumnTag(), fileExt)
+	genFileExt := fmt.Sprintf(".%s.gen%s", config.GoColumnTag(), fileExt)
 
 	for _, arcSrcSet := range arcSrcSetSlice {
 		// closure for defer
 		if err := func() error {
 			filePathWithoutExt := strings.TrimSuffix(arcSrcSet.Filename, fileExt)
-			filename := filePathWithoutExt + newExt
+			filename := filePathWithoutExt + genFileExt
 			f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rw_r__r__)
 			if err != nil {
 				return errorz.Errorf("os.OpenFile: %w", err)
@@ -55,10 +55,10 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 	}
 
 	if config.GenerateGoCRUDPackage() {
-		newExt := fmt.Sprintf(".%s.crud.gen%s", config.GoColumnTag(), fileExt)
+		crudFileExt := ".crud" + genFileExt
 
 		if err := func() error {
-			filename := filepath.Join(config.GoCRUDPackagePath(), "common"+newExt)
+			filename := filepath.Join(config.GoCRUDPackagePath(), "common"+crudFileExt)
 			f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rw_r__r__)
 			if err != nil {
 				return errorz.Errorf("os.OpenFile: %w", err)
@@ -78,7 +78,7 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 			// closure for defer
 			if err := func() error {
 				filePathWithoutExt := strings.TrimSuffix(filepath.Base(arcSrcSet.Filename), fileExt)
-				filename := filepath.Join(config.GoCRUDPackagePath(), filePathWithoutExt+newExt)
+				filename := filepath.Join(config.GoCRUDPackagePath(), filePathWithoutExt+crudFileExt)
 				f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rw_r__r__)
 				if err != nil {
 					return errorz.Errorf("os.OpenFile: %w", err)

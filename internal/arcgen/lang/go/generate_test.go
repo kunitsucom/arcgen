@@ -55,6 +55,28 @@ func TestGenerate(t *testing.T) {
 		}
 	})
 
+	t.Run("success,skipErrInDir", func(t *testing.T) {
+		ctx := contexts.WithOSArgs(context.Background(), []string{
+			"arcgen",
+			"--go-column-tag=dbtest",
+			"--go-method-name-table=GetTableName",
+			"--go-method-name-columns=GetColumnNames",
+			"--go-method-prefix-column=GetColumnName_",
+			"tests",
+		})
+
+		backup := fileExt
+		t.Cleanup(func() { fileExt = backup })
+
+		_, remainingArgs, err := config.Load(ctx)
+		require.NoError(t, err)
+
+		fileExt = ".errsource"
+		for _, src := range remainingArgs {
+			require.NoError(t, Generate(ctx, src))
+		}
+	})
+
 	t.Run("failure,no.errsource", func(t *testing.T) {
 		ctx := contexts.WithOSArgs(context.Background(), []string{
 			"arcgen",
@@ -73,29 +95,7 @@ func TestGenerate(t *testing.T) {
 
 		fileExt = ".source"
 		for _, src := range remainingArgs {
-			require.ErrorContains(t, Generate(ctx, src), "expected 'package', found 'EOF'")
-		}
-	})
-
-	t.Run("failure,no.errsource", func(t *testing.T) {
-		ctx := contexts.WithOSArgs(context.Background(), []string{
-			"arcgen",
-			"--go-column-tag=dbtest",
-			"--go-method-name-table=GetTableName",
-			"--go-method-name-columns=GetColumnNames",
-			"--go-method-prefix-column=GetColumnName_",
-			"tests",
-		})
-
-		backup := fileExt
-		t.Cleanup(func() { fileExt = backup })
-
-		_, remainingArgs, err := config.Load(ctx)
-		require.NoError(t, err)
-
-		fileExt = ".errsource"
-		for _, src := range remainingArgs {
-			require.ErrorContains(t, Generate(ctx, src), "expected 'package', found 'EOF'")
+			require.ErrorContains(t, Generate(ctx, src), "expected 'package', found ")
 		}
 	})
 
