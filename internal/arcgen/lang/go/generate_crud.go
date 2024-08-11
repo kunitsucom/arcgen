@@ -5,10 +5,13 @@ import (
 	"go/printer"
 	"go/token"
 	"io"
+	"path/filepath"
+	"strconv"
 	"strings"
 
 	errorz "github.com/kunitsucom/util.go/errors"
 
+	"github.com/kunitsucom/arcgen/internal/arcgen/lang/util"
 	"github.com/kunitsucom/arcgen/internal/config"
 	"github.com/kunitsucom/arcgen/pkg/errors"
 )
@@ -41,8 +44,42 @@ func generateCRUDFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error
 		Decls: []ast.Decl{},
 	}
 
+	structPackagePath, err := util.GetPackagePath(filepath.Dir(arcSrcSet.Filename))
+	if err != nil {
+		return "", errorz.Errorf("GetPackagePath: %w", err)
+	}
+
+	// import
+	astFile.Decls = append(astFile.Decls,
+		//	import (
+		//		"context"
+		//		"fmt"
+		//
+		//		dao "path/to/your/dao"
+		//	)
+		&ast.GenDecl{
+			Tok: token.IMPORT,
+			Specs: []ast.Spec{
+				&ast.ImportSpec{
+					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("context")},
+				},
+				&ast.ImportSpec{
+					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("fmt")},
+				},
+				&ast.ImportSpec{
+					Name: &ast.Ident{Name: "dao"},
+					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(structPackagePath)},
+				},
+			},
+		},
+	)
+
 	if err := generateCREATEContent(astFile, arcSrcSet); err != nil {
 		return "", errorz.Errorf("generateCREATEContent: %w", err)
+	}
+
+	if err := generateREADContent(astFile, arcSrcSet); err != nil {
+		return "", errorz.Errorf("generateREADContent: %w", err)
 	}
 
 	if err := printer.Fprint(buf, token.NewFileSet(), astFile); err != nil {

@@ -26,12 +26,12 @@ func parse(ctx context.Context, src string) (ARCSourceSetSlice, error) {
 	}
 
 	if info.IsDir() {
-		arcSrcSets := make(ARCSourceSetSlice, 0)
-		if err := filepath.WalkDir(sourceAbs, walkDirFn(ctx, &arcSrcSets)); err != nil {
+		arcSrcSetSlice := make(ARCSourceSetSlice, 0)
+		if err := filepath.WalkDir(sourceAbs, walkDirFn(ctx, &arcSrcSetSlice)); err != nil {
 			return nil, errorz.Errorf("filepath.WalkDir: %w", err)
 		}
 
-		return arcSrcSets, nil
+		return arcSrcSetSlice, nil
 	}
 
 	arcSrcSet, err := parseFile(ctx, sourceAbs)
@@ -45,7 +45,7 @@ func parse(ctx context.Context, src string) (ARCSourceSetSlice, error) {
 //nolint:gochecknoglobals
 var fileExt = ".go"
 
-func walkDirFn(ctx context.Context, arcSrcSets *ARCSourceSetSlice) func(path string, d os.DirEntry, err error) error {
+func walkDirFn(ctx context.Context, arcSrcSetSlice *ARCSourceSetSlice) func(path string, d os.DirEntry, err error) error {
 	return func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err //nolint:wrapcheck
@@ -66,7 +66,7 @@ func walkDirFn(ctx context.Context, arcSrcSets *ARCSourceSetSlice) func(path str
 			return nil
 		}
 
-		*arcSrcSets = append(*arcSrcSets, arcSrcSet)
+		*arcSrcSetSlice = append(*arcSrcSetSlice, arcSrcSet)
 
 		return nil
 	}

@@ -73,23 +73,83 @@ func (a *ARCSource) extractTableNameFromCommentGroup() string {
 	return ""
 }
 
-func (a *ARCSource) extractFieldNamesAndColumnNames() ([]string, []string) {
-	fieldNames, columnNames := make([]string, 0, len(a.StructType.Fields.List)), make([]string, 0, len(a.StructType.Fields.List))
+type TableInfo struct {
+	Columns []*ColumnInfo
+}
+
+func (t *TableInfo) ColumnNames() []string {
+	columnNames := make([]string, len(t.Columns))
+	for i := range t.Columns {
+		columnNames[i] = t.Columns[i].ColumnName
+	}
+	return columnNames
+}
+
+func (t *TableInfo) PrimaryKeys() []*ColumnInfo {
+	pks := make([]*ColumnInfo, 0, len(t.Columns))
+	for _, column := range t.Columns {
+		if column.PK {
+			pks = append(pks, column)
+		}
+	}
+	return pks
+}
+
+type ColumnInfo struct {
+	FieldName  string
+	FieldType  string
+	ColumnName string
+	PK         bool
+}
+
+func fieldName(x ast.Expr) *ast.Ident {
+	switch t := x.(type) {
+	case *ast.Ident:
+		return t
+	case *ast.SelectorExpr:
+		if _, ok := t.X.(*ast.Ident); ok {
+			return t.Sel
+		}
+	case *ast.StarExpr:
+		return fieldName(t.X)
+	}
+	return nil
+}
+
+func (a *ARCSource) extractFieldNamesAndColumnNames() *TableInfo {
+	tableInfo := &TableInfo{
+		Columns: make([]*ColumnInfo, 0, len(a.StructType.Fields.List)),
+	}
 	for _, field := range a.StructType.Fields.List {
 		if field.Tag != nil {
 			tag := reflect.StructTag(strings.Trim(field.Tag.Value, "`"))
+			// db tag
 			switch columnName := tag.Get(config.GoColumnTag()); columnName {
 			case "", "-":
 				logs.Trace.Printf("SKIP: %s: field.Names=%s, columnName=%q", a.Source.String(), field.Names, columnName)
 				// noop
 			default:
 				logs.Trace.Printf("%s: field.Names=%s, columnName=%q", a.Source.String(), field.Names, columnName)
-				fieldNames, columnNames = append(fieldNames, field.Names[0].Name), append(columnNames, columnName)
+				columnInfo := &ColumnInfo{
+					FieldName:  field.Names[0].Name,
+					FieldType:  fieldName(field.Type).String(),
+					ColumnName: columnName,
+				}
+				// pk tag
+				switch pk := tag.Get(config.GoPKTag()); pk {
+				case "", "-":
+					logs.Trace.Printf("SKIP: %s: field.Names=%s, pk=%q", a.Source.String(), field.Names, pk)
+					// noop
+				default:
+					logs.Trace.Printf("%s: field.Names=%s, pk=%q", a.Source.String(), field.Names, pk)
+					columnInfo.PK = true
+				}
+				tableInfo.Columns = append(tableInfo.Columns, columnInfo)
 			}
 		}
 	}
 
-	return fieldNames, columnNames
+	return tableInfo
 }
 
 func (ss *ARCSourceSet) generateGoFileHeader() string {

@@ -30,7 +30,7 @@ func Generate(ctx context.Context, src string) error {
 
 const rw_r__r__ = 0o644 //nolint:revive,stylecheck // rw-r--r--
 
-//nolint:funlen
+//nolint:funlen,gocognit
 func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 	newExt := fmt.Sprintf(".%s.gen%s", config.GoColumnTag(), fileExt)
 
@@ -65,7 +65,7 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 			}
 			defer f.Close()
 
-			if err := fprintCRUDCommon(f, bytes.NewBuffer(nil)); err != nil {
+			if err := fprintCRUDCommon(f, bytes.NewBuffer(nil), arcSrcSetSlice); err != nil {
 				return errorz.Errorf("sprint: %w", err)
 			}
 
