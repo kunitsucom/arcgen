@@ -13,6 +13,7 @@ import (
 	arcgengo "github.com/kunitsucom/arcgen/internal/arcgen/lang/go"
 	"github.com/kunitsucom/arcgen/internal/config"
 	"github.com/kunitsucom/arcgen/internal/logs"
+	apperr "github.com/kunitsucom/arcgen/pkg/errors"
 )
 
 func Run(ctx context.Context) error {
@@ -54,6 +55,6 @@ func generate(ctx context.Context, src string) error {
 		}
 		return nil
 	default:
-		return errorz.Errorf("unknown language: %s", language)
+		return errorz.Errorf("language=%s: %w", language, apperr.ErrLanguageNotSupported)
 	}
 }
