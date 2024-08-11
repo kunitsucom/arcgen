@@ -30,7 +30,7 @@ func Generate(ctx context.Context, src string) error {
 
 const rw_r__r__ = 0o644 //nolint:revive,stylecheck // rw-r--r--
 
-//nolint:funlen,gocognit
+//nolint:cyclop,funlen,gocognit
 func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 	newExt := fmt.Sprintf(".%s.gen%s", config.GoColumnTag(), fileExt)
 

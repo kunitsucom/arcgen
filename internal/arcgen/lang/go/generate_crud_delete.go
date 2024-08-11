@@ -8,23 +8,29 @@ import (
 )
 
 //nolint:funlen
-func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
+func generateDELETEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 	for _, arcSrc := range arcSrcSet.ARCSourceSlice {
 		structName := arcSrc.extractStructName()
 		tableName := arcSrc.extractTableNameFromCommentGroup()
 		tableInfo := arcSrc.extractFieldNamesAndColumnNames()
-		columnNames := tableInfo.ColumnNames()
 
-		// const Create{StructName}Query = `INSERT INTO {table_name} ({column_name1}, {column_name2}) VALUES (?, ?)`
+		// const Delete{StructName}Query = `DELETE FROM {table_name} WHERE {pk1} = ? [AND {pk2} = ?]`
 		//
-		//	func (q *query) Create{StructName}(ctx context.Context, queryer sqlContext, s *{Struct}) error {
-		//		if _, err := queryer.ExecContext(ctx, Create{StructName}Query, s.{ColumnName1}, s.{ColumnName2}); err != nil {
+		//	func (q *query) Delete{StructName}(ctx context.Context, queryer sqlContext, pk1 pk1type [, pk2 pk2type]) error {
+		//		if _, err := queryer.ExecContext(ctx, Delete{StructName}Query, pk1 [, pk2]); err != nil {
 		//			return fmt.Errorf("q.queryer.ExecContext: %w", err)
 		//		}
 		//		return nil
 		//	}
-		funcName := "Create" + structName
+		funcName := "Delete" + structName + "ByPK"
 		queryName := funcName + "Query"
+		pkColumns := tableInfo.PrimaryKeys()
+		pkColumnNames := func() (pkColumnNames []string) {
+			for _, c := range pkColumns {
+				pkColumnNames = append(pkColumnNames, c.ColumnName)
+			}
+			return pkColumnNames
+		}()
 		astFile.Decls = append(astFile.Decls,
 			&ast.GenDecl{
 				Tok: token.CONST,
@@ -33,7 +39,7 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 						Names: []*ast.Ident{{Name: queryName}},
 						Values: []ast.Expr{&ast.BasicLit{
 							Kind:  token.STRING,
-							Value: "`INSERT INTO " + tableName + " (" + strings.Join(columnNames, ", ") + ") VALUES (?" + strings.Repeat(", ?", len(columnNames)-1) + ")`",
+							Value: "`DELETE FROM " + tableName + " WHERE " + strings.Join(pkColumnNames, " = ? AND ") + " = ?`",
 						}},
 					},
 				},
@@ -42,11 +48,19 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 				Recv: &ast.FieldList{List: []*ast.Field{{Names: []*ast.Ident{{Name: "q"}}, Type: &ast.StarExpr{X: &ast.Ident{Name: "Queryer"}}}}},
 				Name: &ast.Ident{Name: funcName},
 				Type: &ast.FuncType{
-					Params: &ast.FieldList{List: []*ast.Field{
-						{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
-						{Names: []*ast.Ident{{Name: "sqlCtx"}}, Type: &ast.Ident{Name: "sqlContext"}},
-						{Names: []*ast.Ident{{Name: "s"}}, Type: &ast.StarExpr{X: &ast.Ident{Name: "dao." + structName}}},
-					}},
+					Params: &ast.FieldList{List: append(
+						[]*ast.Field{
+							{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
+							{Names: []*ast.Ident{{Name: "sqlCtx"}}, Type: &ast.Ident{Name: "sqlContext"}},
+						},
+						func() []*ast.Field {
+							var fields []*ast.Field
+							for _, c := range pkColumns {
+								fields = append(fields, &ast.Field{Names: []*ast.Ident{{Name: c.ColumnName}}, Type: &ast.Ident{Name: c.FieldType}})
+							}
+							return fields
+						}()...,
+					)},
 					Results: &ast.FieldList{List: []*ast.Field{
 						{Type: &ast.Ident{Name: "error"}},
 					}},
@@ -54,7 +68,7 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 				Body: &ast.BlockStmt{
 					List: []ast.Stmt{
 						&ast.IfStmt{
-							//		if _, err := queryer.ExecContext(ctx, Create{StructName}Query, s.{ColumnName1}, s.{ColumnName2}); err != nil {
+							//		if _, err := queryer.ExecContext(ctx, Delete{StructName}Query, pk1 [, pk2]); err != nil {
 							Init: &ast.AssignStmt{
 								Lhs: []ast.Expr{&ast.Ident{Name: "_"}, &ast.Ident{Name: "err"}},
 								Tok: token.DEFINE,
@@ -70,11 +84,12 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 										},
 										func() []ast.Expr {
 											var args []ast.Expr
-											for _, c := range tableInfo.Columns {
-												args = append(args, &ast.SelectorExpr{X: &ast.Ident{Name: "s"}, Sel: &ast.Ident{Name: c.FieldName}})
+											for _, c := range pkColumns {
+												args = append(args, &ast.Ident{Name: c.ColumnName})
 											}
 											return args
-										}()...),
+										}()...,
+									),
 								}},
 							},
 							// err != nil {

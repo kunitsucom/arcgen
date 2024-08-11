@@ -22,13 +22,14 @@ type config struct {
 	Language string `json:"language"`
 	// Golang
 	GoColumnTag          string `json:"go_column_tag"`
+	GoCRUDPackagePath    string `json:"go_crud_package_path"`
+	GoCRUDPackageName    string `json:"go_crud_package_name"`
+	GoHasOneTag          string `json:"go_has_one_tag"`
 	GoMethodNameTable    string `json:"go_method_name_table"`
 	GoMethodNameColumns  string `json:"go_method_name_columns"`
 	GoMethodPrefixColumn string `json:"go_method_prefix_column"`
 	GoPKTag              string `json:"go_pk_tag"`
 	GoSliceTypeSuffix    string `json:"go_slice_type_suffix"`
-	GoCRUDPackagePath    string `json:"go_crud_package_path"`
-	GoCRUDPackageName    string `json:"go_crud_package_name"`
 }
 
 //nolint:gochecknoglobals
@@ -84,6 +85,15 @@ const (
 	_OptionGoColumnTag = "go-column-tag"
 	_EnvKeyGoColumnTag = "ARCGEN_GO_COLUMN_TAG"
 
+	_OptionGoCRUDPackagePath = "go-crud-package-path"
+	_EnvKeyGoCRUDPackagePath = "ARCGEN_GO_CRUD_PACKAGE_PATH"
+
+	_OptionGoCRUDPackageName = "go-crud-package-name"
+	_EnvKeyGoCRUDPackageName = "ARCGEN_GO_CRUD_PACKAGE_NAME"
+
+	_OptionGoHasOneTag = "go-has-one-tag"
+	_EnvKeyGoHasOneTag = "ARCGEN_GO_HAS_ONE_TAG"
+
 	_OptionGoMethodNameTable = "go-method-name-table"
 	_EnvKeyGoMethodNameTable = "ARCGEN_GO_METHOD_NAME_TABLE"
 
@@ -98,12 +108,6 @@ const (
 
 	_OptionGoSliceTypeSuffix = "go-slice-type-suffix"
 	_EnvKeyGoSliceTypeSuffix = "ARCGEN_GO_SLICE_TYPE_SUFFIX"
-
-	_OptionGoCRUDPackagePath = "go-crud-package-path"
-	_EnvKeyGoCRUDPackagePath = "ARCGEN_GO_CRUD_PACKAGE_PATH"
-
-	_OptionGoCRUDPackageName = "go-crud-package-name"
-	_EnvKeyGoCRUDPackageName = "ARCGEN_GO_CRUD_PACKAGE_NAME"
 )
 
 // MEMO: Since there is a possibility of returning some kind of error in the future, the signature is made to return an error.
@@ -142,6 +146,21 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 				Default:     cliz.Default("db"),
 			},
 			&cliz.StringOption{
+				Name: _OptionGoCRUDPackagePath, Environment: _EnvKeyGoCRUDPackagePath,
+				Description: "package path for CRUD",
+				Default:     cliz.Default(""),
+			},
+			&cliz.StringOption{
+				Name: _OptionGoCRUDPackageName, Environment: _EnvKeyGoCRUDPackageName,
+				Description: "package name for CRUD",
+				Default:     cliz.Default(""),
+			},
+			&cliz.StringOption{
+				Name: _OptionGoHasOneTag, Environment: _EnvKeyGoHasOneTag,
+				Description: "has one annotation key for Go struct tag",
+				Default:     cliz.Default("hasOne"),
+			},
+			&cliz.StringOption{
 				Name: _OptionGoMethodNameTable, Environment: _EnvKeyGoMethodNameTable,
 				Description: "method name for table",
 				Default:     cliz.Default("TableName"),
@@ -166,16 +185,6 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 				Description: "suffix for slice type",
 				Default:     cliz.Default("Slice"),
 			},
-			&cliz.StringOption{
-				Name: _OptionGoCRUDPackagePath, Environment: _EnvKeyGoCRUDPackagePath,
-				Description: "package path for CRUD",
-				Default:     cliz.Default(""),
-			},
-			&cliz.StringOption{
-				Name: _OptionGoCRUDPackageName, Environment: _EnvKeyGoCRUDPackageName,
-				Description: "package name for CRUD",
-				Default:     cliz.Default(""),
-			},
 		},
 	}
 
@@ -191,13 +200,14 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 		Language: loadLanguage(ctx, cmd),
 		// Golang
 		GoColumnTag:          loadGoColumnTag(ctx, cmd),
+		GoCRUDPackagePath:    loadGoCRUDPackagePath(ctx, cmd),
+		GoCRUDPackageName:    loadGoCRUDPackageName(ctx, cmd),
+		GoHasOneTag:          loadGoHasOneTag(ctx, cmd),
 		GoMethodNameTable:    loadGoMethodNameTable(ctx, cmd),
 		GoMethodNameColumns:  loadGoMethodNameColumns(ctx, cmd),
 		GoMethodPrefixColumn: loadGoMethodPrefixColumn(ctx, cmd),
 		GoPKTag:              loadGoPKTag(ctx, cmd),
 		GoSliceTypeSuffix:    loadGoSliceTypeSuffix(ctx, cmd),
-		GoCRUDPackagePath:    loadGoCRUDPackagePath(ctx, cmd),
-		GoCRUDPackageName:    loadGoCRUDPackageName(ctx, cmd),
 	}
 
 	if c.Debug {

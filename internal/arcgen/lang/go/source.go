@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 
@@ -74,7 +75,9 @@ func (a *ARCSource) extractTableNameFromCommentGroup() string {
 }
 
 type TableInfo struct {
-	Columns []*ColumnInfo
+	HasOneTags  []string
+	HasManyTags []string
+	Columns     []*ColumnInfo
 }
 
 func (t *TableInfo) ColumnNames() []string {
@@ -95,11 +98,39 @@ func (t *TableInfo) PrimaryKeys() []*ColumnInfo {
 	return pks
 }
 
+func (t *TableInfo) NonPrimaryKeys() []*ColumnInfo {
+	nonPks := make([]*ColumnInfo, 0, len(t.Columns))
+	for _, column := range t.Columns {
+		if !column.PK {
+			nonPks = append(nonPks, column)
+		}
+	}
+	return nonPks
+}
+
+func (t *TableInfo) HasOneTagColumnsByTag() map[string][]*ColumnInfo {
+	columns := make(map[string][]*ColumnInfo)
+	for _, hasOneTagInTable := range t.HasOneTags {
+		columns[hasOneTagInTable] = make([]*ColumnInfo, 0, len(t.Columns))
+		for _, column := range t.Columns {
+			for _, hasOneTag := range column.HasOneTags {
+				if hasOneTagInTable == hasOneTag {
+					columns[hasOneTag] = append(columns[hasOneTag], column)
+				}
+			}
+		}
+	}
+
+	return columns
+}
+
 type ColumnInfo struct {
-	FieldName  string
-	FieldType  string
-	ColumnName string
-	PK         bool
+	FieldName   string
+	FieldType   string
+	ColumnName  string
+	PK          bool
+	HasOneTags  []string
+	HasManyTags []string
 }
 
 func fieldName(x ast.Expr) *ast.Ident {
@@ -144,10 +175,22 @@ func (a *ARCSource) extractFieldNamesAndColumnNames() *TableInfo {
 					logs.Trace.Printf("%s: field.Names=%s, pk=%q", a.Source.String(), field.Names, pk)
 					columnInfo.PK = true
 				}
+				// hasOne tag
+				for _, hasOneTag := range strings.Split(tag.Get(config.GoHasOneTag()), ",") {
+					if hasOneTag != "" {
+						logs.Trace.Printf("%s: field.Names=%s, hasOneTag=%q", a.Source.String(), field.Names, hasOneTag)
+						tableInfo.HasOneTags = append(tableInfo.HasOneTags, hasOneTag)
+						columnInfo.HasOneTags = append(columnInfo.HasOneTags, hasOneTag)
+					}
+				}
+
 				tableInfo.Columns = append(tableInfo.Columns, columnInfo)
 			}
 		}
 	}
+
+	slices.Sort(tableInfo.HasOneTags)
+	tableInfo.HasOneTags = slices.Compact(tableInfo.HasOneTags)
 
 	return tableInfo
 }

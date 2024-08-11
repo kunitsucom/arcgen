@@ -76,6 +76,8 @@ func generateCRUDFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error
 
 	generateCREATEContent(astFile, arcSrcSet)
 	generateREADContent(astFile, arcSrcSet)
+	generateUPDATEContent(astFile, arcSrcSet)
+	generateDELETEContent(astFile, arcSrcSet)
 
 	if err := printer.Fprint(buf, token.NewFileSet(), astFile); err != nil {
 		return "", errorz.Errorf("printer.Fprint: %w", err)

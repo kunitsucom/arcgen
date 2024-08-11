@@ -8,23 +8,36 @@ import (
 )
 
 //nolint:funlen
-func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
+func generateUPDATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 	for _, arcSrc := range arcSrcSet.ARCSourceSlice {
 		structName := arcSrc.extractStructName()
 		tableName := arcSrc.extractTableNameFromCommentGroup()
 		tableInfo := arcSrc.extractFieldNamesAndColumnNames()
-		columnNames := tableInfo.ColumnNames()
 
-		// const Create{StructName}Query = `INSERT INTO {table_name} ({column_name1}, {column_name2}) VALUES (?, ?)`
+		// const Update{StructName}Query = `UPDATE {table_name} SET ({column_name1}, {column_name2}) = (?, ?) WHERE {pk1} = ? [AND {pk2} = ?]`
 		//
-		//	func (q *query) Create{StructName}(ctx context.Context, queryer sqlContext, s *{Struct}) error {
-		//		if _, err := queryer.ExecContext(ctx, Create{StructName}Query, s.{ColumnName1}, s.{ColumnName2}); err != nil {
+		//	func (q *query) Update{StructName}(ctx context.Context, queryer sqlContext, s *{Struct}) error {
+		//		if _, err := queryer.ExecContext(ctx, Update{StructName}Query, s.{ColumnName1}, s.{ColumnName2}, s.{PK1} [, s.{PK2}]); err != nil {
 		//			return fmt.Errorf("q.queryer.ExecContext: %w", err)
 		//		}
 		//		return nil
 		//	}
-		funcName := "Create" + structName
+		funcName := "Update" + structName
 		queryName := funcName + "Query"
+		pkColumns := tableInfo.PrimaryKeys()
+		pkColumnNames := func() (pkColumnNames []string) {
+			for _, c := range pkColumns {
+				pkColumnNames = append(pkColumnNames, c.ColumnName)
+			}
+			return pkColumnNames
+		}()
+		nonPKColumns := tableInfo.NonPrimaryKeys()
+		nonPKColumnNames := func() (nonPKColumnNames []string) {
+			for _, c := range nonPKColumns {
+				nonPKColumnNames = append(nonPKColumnNames, c.ColumnName)
+			}
+			return nonPKColumnNames
+		}()
 		astFile.Decls = append(astFile.Decls,
 			&ast.GenDecl{
 				Tok: token.CONST,
@@ -33,7 +46,7 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 						Names: []*ast.Ident{{Name: queryName}},
 						Values: []ast.Expr{&ast.BasicLit{
 							Kind:  token.STRING,
-							Value: "`INSERT INTO " + tableName + " (" + strings.Join(columnNames, ", ") + ") VALUES (?" + strings.Repeat(", ?", len(columnNames)-1) + ")`",
+							Value: "`UPDATE " + tableName + " SET (" + strings.Join(nonPKColumnNames, ", ") + ") = (?" + strings.Repeat(", ?", len(nonPKColumns)-1) + ") WHERE " + strings.Join(pkColumnNames, " = ? AND ") + " = ?`",
 						}},
 					},
 				},
@@ -54,7 +67,7 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 				Body: &ast.BlockStmt{
 					List: []ast.Stmt{
 						&ast.IfStmt{
-							//		if _, err := queryer.ExecContext(ctx, Create{StructName}Query, s.{ColumnName1}, s.{ColumnName2}); err != nil {
+							//		if _, err := queryer.ExecContext(ctx, Update{StructName}Query, s.{ColumnName1}, s.{ColumnName2}, s.{PK1} [, s.{PK2}]); err != nil {
 							Init: &ast.AssignStmt{
 								Lhs: []ast.Expr{&ast.Ident{Name: "_"}, &ast.Ident{Name: "err"}},
 								Tok: token.DEFINE,
@@ -64,17 +77,26 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 										Sel: &ast.Ident{Name: "ExecContext"},
 									},
 									Args: append(
-										[]ast.Expr{
-											&ast.Ident{Name: "ctx"},
-											&ast.Ident{Name: queryName},
-										},
+										append(
+											[]ast.Expr{
+												&ast.Ident{Name: "ctx"},
+												&ast.Ident{Name: queryName},
+											},
+											func() []ast.Expr {
+												var args []ast.Expr
+												for _, c := range nonPKColumns {
+													args = append(args, &ast.SelectorExpr{X: &ast.Ident{Name: "s"}, Sel: &ast.Ident{Name: c.FieldName}})
+												}
+												return args
+											}()...),
 										func() []ast.Expr {
 											var args []ast.Expr
-											for _, c := range tableInfo.Columns {
+											for _, c := range pkColumns {
 												args = append(args, &ast.SelectorExpr{X: &ast.Ident{Name: "s"}, Sel: &ast.Ident{Name: c.FieldName}})
 											}
 											return args
-										}()...),
+										}()...,
+									),
 								}},
 							},
 							// err != nil {

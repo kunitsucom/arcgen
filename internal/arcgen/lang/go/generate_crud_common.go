@@ -5,13 +5,11 @@ import (
 	"go/printer"
 	"go/token"
 	"io"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	errorz "github.com/kunitsucom/util.go/errors"
 
-	"github.com/kunitsucom/arcgen/internal/arcgen/lang/util"
 	"github.com/kunitsucom/arcgen/internal/config"
 )
 
@@ -30,7 +28,7 @@ func fprintCRUDCommon(osFile osFile, buf buffer, arcSrcSetSlice ARCSourceSetSlic
 }
 
 //nolint:funlen
-func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice) (string, error) {
+func generateCRUDCommonFileContent(buf buffer, _ ARCSourceSetSlice) (string, error) {
 	astFile := &ast.File{
 		// package
 		Name: &ast.Ident{
@@ -40,13 +38,13 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice)
 		Decls: []ast.Decl{},
 	}
 
-	// Since all directories are the same from arcSrcSetSlice[0].Filename to arcSrcSetSlice[len(-1)].Filename,
-	// get the package path from arcSrcSetSlice[0].Filename.
-	dir := filepath.Dir(arcSrcSetSlice[0].Filename)
-	structPackagePath, err := util.GetPackagePath(dir)
-	if err != nil {
-		return "", errorz.Errorf("GetPackagePath: %w", err)
-	}
+	// // Since all directories are the same from arcSrcSetSlice[0].Filename to arcSrcSetSlice[len(-1)].Filename,
+	// // get the package path from arcSrcSetSlice[0].Filename.
+	// dir := filepath.Dir(arcSrcSetSlice[0].Filename)
+	// structPackagePath, err := util.GetPackagePath(dir)
+	// if err != nil {
+	// 	return "", errorz.Errorf("GetPackagePath: %w", err)
+	// }
 
 	astFile.Decls = append(astFile.Decls,
 		//	import (
@@ -59,26 +57,20 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice)
 			Tok: token.IMPORT,
 			Specs: []ast.Spec{
 				&ast.ImportSpec{
-					Path: &ast.BasicLit{
-						Kind:  token.STRING,
-						Value: strconv.Quote("context"),
-					},
+					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("context")},
 				},
 				&ast.ImportSpec{
-					Path: &ast.BasicLit{
-						Kind:  token.STRING,
-						Value: strconv.Quote("database/sql"),
-					},
+					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("database/sql")},
 				},
-				&ast.ImportSpec{
-					Name: &ast.Ident{Name: "dao"},
-					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(structPackagePath)},
-				},
+				// &ast.ImportSpec{
+				// 	Name: &ast.Ident{Name: "dao"},
+				// 	Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(structPackagePath)},
+				// },
 			},
 		},
 	)
 
-	//	type sqlQueryerContext interface {
+	//	type sqlContext interface {
 	//		QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
 	//		QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 	//		ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
@@ -88,7 +80,7 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice)
 			Tok: token.TYPE,
 			Specs: []ast.Spec{
 				&ast.TypeSpec{
-					Name: &ast.Ident{Name: "sqlQueryerContext"},
+					Name: &ast.Ident{Name: "sqlContext"},
 					Type: &ast.InterfaceType{
 						Methods: &ast.FieldList{
 							List: []*ast.Field{
@@ -141,92 +133,27 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice)
 		},
 	)
 
-	//	type query struct {}
+	//	type Queryer struct {}
 	astFile.Decls = append(astFile.Decls,
 		&ast.GenDecl{
 			Tok: token.TYPE,
 			Specs: []ast.Spec{
 				&ast.TypeSpec{
-					Name: &ast.Ident{Name: "query"},
+					Name: &ast.Ident{Name: "Queryer"},
 					Type: &ast.StructType{Fields: &ast.FieldList{}},
 				},
 			},
 		},
 	)
 
-	//	type Query interface {
-	//		Create{StructName}(ctx context.Context, queryer sqlQueryerContext, s *{Struct}) error
-	//		Find{StructName}(ctx context.Context, queryer sqlQueryerContext, pk1 pk1type, ...) (*{Struct}, error)
-	//		 	...
-	//	}
-	methods := make([]*ast.Field, 0)
-	for _, arcSrcSet := range arcSrcSetSlice {
-		for _, arcSrc := range arcSrcSet.ARCSourceSlice {
-			structName := arcSrc.extractStructName()
-			pks := arcSrc.extractFieldNamesAndColumnNames().PrimaryKeys()
-			methods = append(methods,
-				&ast.Field{
-					Names: []*ast.Ident{{Name: "Create" + structName}},
-					Type: &ast.FuncType{
-						Params: &ast.FieldList{List: []*ast.Field{
-							{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
-							{Names: []*ast.Ident{{Name: "queryer"}}, Type: &ast.Ident{Name: "sqlQueryerContext"}},
-							{Names: []*ast.Ident{{Name: "s"}}, Type: &ast.StarExpr{X: &ast.Ident{Name: "dao." + structName}}},
-						}},
-						Results: &ast.FieldList{List: []*ast.Field{
-							{Type: &ast.Ident{Name: "error"}},
-						}},
-					},
-				},
-				&ast.Field{
-					Names: []*ast.Ident{{Name: "Find" + structName}},
-					Type: &ast.FuncType{
-						Params: &ast.FieldList{
-							List: append([]*ast.Field{
-								{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
-								{Names: []*ast.Ident{{Name: "queryer"}}, Type: &ast.Ident{Name: "sqlQueryerContext"}},
-							},
-								func() []*ast.Field {
-									fields := make([]*ast.Field, 0)
-									for _, pk := range pks {
-										fields = append(fields, &ast.Field{
-											Names: []*ast.Ident{{Name: pk.FieldName}},
-											Type:  &ast.Ident{Name: pk.FieldType},
-										})
-									}
-									return fields
-								}()...),
-						},
-						Results: &ast.FieldList{List: []*ast.Field{
-							{Type: &ast.StarExpr{X: &ast.Ident{Name: "dao." + structName}}},
-							{Type: &ast.Ident{Name: "error"}},
-						}},
-					},
-				},
-			)
-		}
-	}
-
-	astFile.Decls = append(astFile.Decls,
-		&ast.GenDecl{
-			Tok: token.TYPE,
-			Specs: []ast.Spec{
-				&ast.TypeSpec{
-					Name: &ast.Ident{Name: "Query"},
-					Type: &ast.InterfaceType{Methods: &ast.FieldList{List: methods}},
-				},
-			},
-		},
-	)
-
-	// func NewQuery() Query {
-	//	return &query{}
+	// func NewQueryer() *Query {
+	//	return &Queryer{}
 	// }
 	astFile.Decls = append(astFile.Decls,
 		&ast.FuncDecl{
-			Name: &ast.Ident{Name: "NewQuery"},
-			Type: &ast.FuncType{Results: &ast.FieldList{List: []*ast.Field{{Type: &ast.Ident{Name: "Query"}}}}},
-			Body: &ast.BlockStmt{List: []ast.Stmt{&ast.ReturnStmt{Results: []ast.Expr{&ast.UnaryExpr{Op: token.AND, X: &ast.Ident{Name: "query{}"}}}}}},
+			Name: &ast.Ident{Name: "NewQueryer"},
+			Type: &ast.FuncType{Results: &ast.FieldList{List: []*ast.Field{{Type: &ast.StarExpr{X: &ast.Ident{Name: "Queryer"}}}}}},
+			Body: &ast.BlockStmt{List: []ast.Stmt{&ast.ReturnStmt{Results: []ast.Expr{&ast.UnaryExpr{Op: token.AND, X: &ast.Ident{Name: "Queryer{}"}}}}}},
 		},
 	)
 
