@@ -26,12 +26,12 @@ func parse(ctx context.Context, src string) (ARCSourceSetSlice, error) {
 	}
 
 	if info.IsDir() {
-		arcSrcSets := make(ARCSourceSetSlice, 0)
-		if err := filepath.WalkDir(sourceAbs, walkDirFn(ctx, &arcSrcSets)); err != nil {
+		arcSrcSetSlice := make(ARCSourceSetSlice, 0)
+		if err := filepath.WalkDir(sourceAbs, walkDirFn(ctx, &arcSrcSetSlice)); err != nil {
 			return nil, errorz.Errorf("filepath.WalkDir: %w", err)
 		}
 
-		return arcSrcSets, nil
+		return arcSrcSetSlice, nil
 	}
 
 	arcSrcSet, err := parseFile(ctx, sourceAbs)
@@ -45,7 +45,7 @@ func parse(ctx context.Context, src string) (ARCSourceSetSlice, error) {
 //nolint:gochecknoglobals
 var fileExt = ".go"
 
-func walkDirFn(ctx context.Context, arcSrcSets *ARCSourceSetSlice) func(path string, d os.DirEntry, err error) error {
+func walkDirFn(ctx context.Context, arcSrcSetSlice *ARCSourceSetSlice) func(path string, d os.DirEntry, err error) error {
 	return func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err //nolint:wrapcheck
@@ -58,13 +58,15 @@ func walkDirFn(ctx context.Context, arcSrcSets *ARCSourceSetSlice) func(path str
 		arcSrcSet, err := parseFile(ctx, path)
 		if err != nil {
 			if errors.Is(err, apperr.ErrGoColumnTagAnnotationNotFoundInSource) {
-				logs.Debug.Printf("SKIP: parseFile: file=%s: %v", path, err)
+				logs.Debug.Printf("SKIP: parseFile: %v", err)
 				return nil
 			}
-			return errorz.Errorf("parseFile: file=%s: %v", path, err)
+
+			logs.Info.Printf("SKIP NON-GO FILE: parseFile: %v", err)
+			return nil
 		}
 
-		*arcSrcSets = append(*arcSrcSets, arcSrcSet)
+		*arcSrcSetSlice = append(*arcSrcSetSlice, arcSrcSet)
 
 		return nil
 	}
@@ -74,12 +76,13 @@ func parseFile(ctx context.Context, filename string) (*ARCSourceSet, error) {
 	fset := token.NewFileSet()
 	rootNode, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
 	if err != nil {
+		// MEMO: parser.ParseFile err contains file path, so no need to log it
 		return nil, errorz.Errorf("parser.ParseFile: %w", err)
 	}
 
 	arcSrcSet, err := extractSource(ctx, fset, rootNode)
 	if err != nil {
-		return nil, errorz.Errorf("extractSource: %w", err)
+		return nil, errorz.Errorf("extractSource: filename=%s: %w", filename, err)
 	}
 
 	dumpSource(fset, arcSrcSet)

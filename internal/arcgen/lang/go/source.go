@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 
@@ -73,29 +74,159 @@ func (a *ARCSource) extractTableNameFromCommentGroup() string {
 	return ""
 }
 
-func (a *ARCSource) extractFieldNamesAndColumnNames() ([]string, []string) {
-	fieldNames, columnNames := make([]string, 0, len(a.StructType.Fields.List)), make([]string, 0, len(a.StructType.Fields.List))
+type TableInfo struct {
+	HasOneTags  []string
+	HasManyTags []string
+	Columns     []*ColumnInfo
+}
+
+func (t *TableInfo) ColumnNames() []string {
+	columnNames := make([]string, len(t.Columns))
+	for i := range t.Columns {
+		columnNames[i] = t.Columns[i].ColumnName
+	}
+	return columnNames
+}
+
+func (t *TableInfo) PrimaryKeys() []*ColumnInfo {
+	pks := make([]*ColumnInfo, 0, len(t.Columns))
+	for _, column := range t.Columns {
+		if column.PK {
+			pks = append(pks, column)
+		}
+	}
+	return pks
+}
+
+func (t *TableInfo) NonPrimaryKeys() []*ColumnInfo {
+	nonPks := make([]*ColumnInfo, 0, len(t.Columns))
+	for _, column := range t.Columns {
+		if !column.PK {
+			nonPks = append(nonPks, column)
+		}
+	}
+	return nonPks
+}
+
+func (t *TableInfo) HasOneTagColumnsByTag() map[string][]*ColumnInfo {
+	columns := make(map[string][]*ColumnInfo)
+	for _, hasOneTagInTable := range t.HasOneTags {
+		columns[hasOneTagInTable] = make([]*ColumnInfo, 0, len(t.Columns))
+		for _, column := range t.Columns {
+			for _, hasOneTag := range column.HasOneTags {
+				if hasOneTagInTable == hasOneTag {
+					columns[hasOneTag] = append(columns[hasOneTag], column)
+				}
+			}
+		}
+	}
+
+	return columns
+}
+
+func (t *TableInfo) HasManyTagColumnsByTag() map[string][]*ColumnInfo {
+	columns := make(map[string][]*ColumnInfo)
+	for _, hasManyTagInTable := range t.HasManyTags {
+		columns[hasManyTagInTable] = make([]*ColumnInfo, 0, len(t.Columns))
+		for _, column := range t.Columns {
+			for _, hasManyTag := range column.HasManyTags {
+				if hasManyTagInTable == hasManyTag {
+					columns[hasManyTag] = append(columns[hasManyTag], column)
+				}
+			}
+		}
+	}
+
+	return columns
+}
+
+type ColumnInfo struct {
+	FieldName   string
+	FieldType   string
+	ColumnName  string
+	PK          bool
+	HasOneTags  []string
+	HasManyTags []string
+}
+
+func fieldName(x ast.Expr) *ast.Ident {
+	switch t := x.(type) {
+	case *ast.Ident:
+		return t
+	case *ast.SelectorExpr:
+		if _, ok := t.X.(*ast.Ident); ok {
+			return t.Sel
+		}
+	case *ast.StarExpr:
+		return fieldName(t.X)
+	}
+	return nil
+}
+
+//nolint:cyclop
+func (a *ARCSource) extractFieldNamesAndColumnNames() *TableInfo {
+	tableInfo := &TableInfo{
+		Columns: make([]*ColumnInfo, 0, len(a.StructType.Fields.List)),
+	}
 	for _, field := range a.StructType.Fields.List {
 		if field.Tag != nil {
 			tag := reflect.StructTag(strings.Trim(field.Tag.Value, "`"))
+			// db tag
 			switch columnName := tag.Get(config.GoColumnTag()); columnName {
 			case "", "-":
 				logs.Trace.Printf("SKIP: %s: field.Names=%s, columnName=%q", a.Source.String(), field.Names, columnName)
 				// noop
 			default:
 				logs.Trace.Printf("%s: field.Names=%s, columnName=%q", a.Source.String(), field.Names, columnName)
-				fieldNames, columnNames = append(fieldNames, field.Names[0].Name), append(columnNames, columnName)
+				columnInfo := &ColumnInfo{
+					FieldName:  field.Names[0].Name,
+					FieldType:  fieldName(field.Type).String(),
+					ColumnName: columnName,
+				}
+				// pk tag
+				switch pk := tag.Get(config.GoPKTag()); pk {
+				case "", "-":
+					logs.Trace.Printf("SKIP: %s: field.Names=%s, pk=%q", a.Source.String(), field.Names, pk)
+					// noop
+				default:
+					logs.Trace.Printf("%s: field.Names=%s, pk=%q", a.Source.String(), field.Names, pk)
+					columnInfo.PK = true
+				}
+				// hasOne tag
+				for _, hasOneTag := range strings.Split(tag.Get(config.GoHasOneTag()), ",") {
+					if hasOneTag != "" {
+						logs.Trace.Printf("%s: field.Names=%s, hasOneTag=%q", a.Source.String(), field.Names, hasOneTag)
+						tableInfo.HasOneTags = append(tableInfo.HasOneTags, hasOneTag)
+						columnInfo.HasOneTags = append(columnInfo.HasOneTags, hasOneTag)
+					}
+				}
+				// hasMany tag
+				for _, hasManyTag := range strings.Split(tag.Get(config.GoHasManyTag()), ",") {
+					if hasManyTag != "" {
+						logs.Trace.Printf("%s: field.Names=%s, hasManyTag=%q", a.Source.String(), field.Names, hasManyTag)
+						tableInfo.HasManyTags = append(tableInfo.HasManyTags, hasManyTag)
+						columnInfo.HasManyTags = append(columnInfo.HasManyTags, hasManyTag)
+					}
+				}
+
+				tableInfo.Columns = append(tableInfo.Columns, columnInfo)
 			}
 		}
 	}
 
-	return fieldNames, columnNames
+	slices.Sort(tableInfo.HasOneTags)
+	tableInfo.HasOneTags = slices.Compact(tableInfo.HasOneTags)
+
+	return tableInfo
 }
 
 func (ss *ARCSourceSet) generateGoFileHeader() string {
+	return generateGoFileHeader() +
+		"// source: " + filepathz.Short(ss.Source.Filename) + "\n"
+}
+
+func generateGoFileHeader() string {
 	return "" +
 		"// Code generated by arcgen. DO NOT EDIT." + "\n" +
-		"//" + "\n" +
-		"// source: " + filepathz.Short(ss.Source.Filename) + "\n" +
-		"\n"
+		"//" + "\n"
 }

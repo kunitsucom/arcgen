@@ -14,7 +14,7 @@ import (
 	"github.com/kunitsucom/arcgen/pkg/errors"
 )
 
-func fprintColumns(osFile io.Writer, buf buffer, arcSrcSet *ARCSourceSet) error {
+func fprintColumns(osFile osFile, buf buffer, arcSrcSet *ARCSourceSet) error {
 	content, err := generateColumnsFileContent(buf, arcSrcSet)
 	if err != nil {
 		return errorz.Errorf("generateColumnsFile: %w", err)
@@ -44,7 +44,7 @@ func generateColumnsFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, er
 	for _, arcSrc := range arcSrcSet.ARCSourceSlice {
 		structName := arcSrc.extractStructName()
 		tableName := arcSrc.extractTableNameFromCommentGroup()
-		fieldNames, columnNames := arcSrc.extractFieldNamesAndColumnNames()
+		columnInfos := arcSrc.extractFieldNamesAndColumnNames()
 
 		appendAST(
 			astFile,
@@ -54,8 +54,7 @@ func generateColumnsFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, er
 			config.GoMethodNameTable(),
 			config.GoMethodNameColumns(),
 			config.GoMethodPrefixColumn(),
-			fieldNames,
-			columnNames,
+			columnInfos,
 		)
 	}
 
@@ -64,7 +63,7 @@ func generateColumnsFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, er
 	}
 
 	// add header comment
-	content := arcSrcSet.generateGoFileHeader() + buf.String()
+	content := arcSrcSet.generateGoFileHeader() + "\n" + buf.String()
 
 	// add blank line between methods
 	content = strings.ReplaceAll(content, "\n}\nfunc ", "\n}\n\nfunc ")
@@ -72,10 +71,10 @@ func generateColumnsFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, er
 	return content, nil
 }
 
-func appendAST(file *ast.File, structName string, sliceTypeSuffix string, tableName string, methodNameTable string, methodNameColumns string, methodPrefixColumn string, fieldNames, columnNames []string) {
+func appendAST(file *ast.File, structName string, sliceTypeSuffix string, tableName string, methodNameTable string, methodNameColumns string, methodPrefixColumn string, tableInfo *TableInfo) {
 	file.Decls = append(file.Decls, generateASTTableMethods(structName, sliceTypeSuffix, tableName, methodNameTable)...)
 
-	file.Decls = append(file.Decls, generateASTColumnMethods(structName, sliceTypeSuffix, methodNameColumns, methodPrefixColumn, fieldNames, columnNames)...)
+	file.Decls = append(file.Decls, generateASTColumnMethods(structName, sliceTypeSuffix, methodNameColumns, methodPrefixColumn, tableInfo)...)
 
 	return //nolint:gosimple
 }
@@ -207,15 +206,15 @@ func generateASTTableMethods(structName string, sliceTypeSuffix string, tableNam
 }
 
 //nolint:funlen
-func generateASTColumnMethods(structName string, sliceTypeSuffix string, methodNameColumns string, prefixColumn string, fieldNames, columnNames []string) []ast.Decl {
+func generateASTColumnMethods(structName string, sliceTypeSuffix string, methodNameColumns string, prefixColumn string, tableInfo *TableInfo) []ast.Decl {
 	decls := make([]ast.Decl, 0)
 
 	// all column names method
 	elts := make([]ast.Expr, 0)
-	for _, columnName := range columnNames {
+	for _, c := range tableInfo.Columns {
 		elts = append(elts, &ast.BasicLit{
 			Kind:  token.STRING,
-			Value: strconv.Quote(columnName),
+			Value: strconv.Quote(c.ColumnName),
 		})
 	}
 	decls = append(decls,
@@ -274,7 +273,7 @@ func generateASTColumnMethods(structName string, sliceTypeSuffix string, methodN
 	)
 
 	// each column name methods
-	for i := range columnNames {
+	for i := range tableInfo.Columns {
 		decls = append(decls,
 			//	func (s *StructName) Column1() string {
 			//		return "column1"
@@ -297,7 +296,7 @@ func generateASTColumnMethods(structName string, sliceTypeSuffix string, methodN
 					},
 				},
 				Name: &ast.Ident{
-					Name: prefixColumn + fieldNames[i],
+					Name: prefixColumn + tableInfo.Columns[i].FieldName,
 				},
 				Type: &ast.FuncType{
 					Params: &ast.FieldList{},
@@ -316,7 +315,7 @@ func generateASTColumnMethods(structName string, sliceTypeSuffix string, methodN
 						&ast.ReturnStmt{
 							Results: []ast.Expr{
 								&ast.Ident{
-									Name: strconv.Quote(columnNames[i]),
+									Name: strconv.Quote(tableInfo.Columns[i].ColumnName),
 								},
 							},
 						},
@@ -381,7 +380,7 @@ func generateASTColumnMethods(structName string, sliceTypeSuffix string, methodN
 		)
 
 		// each column name methods
-		for i := range columnNames {
+		for i := range tableInfo.Columns {
 			decls = append(decls,
 				//	func (s StructNameSlice) Column1() string {
 				//		return "column1"
@@ -402,7 +401,7 @@ func generateASTColumnMethods(structName string, sliceTypeSuffix string, methodN
 						},
 					},
 					Name: &ast.Ident{
-						Name: prefixColumn + fieldNames[i],
+						Name: prefixColumn + tableInfo.Columns[i].FieldName,
 					},
 					Type: &ast.FuncType{
 						Params: &ast.FieldList{},
@@ -421,7 +420,7 @@ func generateASTColumnMethods(structName string, sliceTypeSuffix string, methodN
 							&ast.ReturnStmt{
 								Results: []ast.Expr{
 									&ast.Ident{
-										Name: strconv.Quote(columnNames[i]),
+										Name: strconv.Quote(tableInfo.Columns[i].ColumnName),
 									},
 								},
 							},

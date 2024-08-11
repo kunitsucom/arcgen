@@ -20,6 +20,7 @@ var _ buffer = (*testBuffer)(nil)
 type testBuffer struct {
 	WriteFunc  func(p []byte) (n int, err error)
 	StringFunc func() string
+	NameFunc   func() string
 }
 
 func (w *testBuffer) Write(p []byte) (n int, err error) {
@@ -28,6 +29,10 @@ func (w *testBuffer) Write(p []byte) (n int, err error) {
 
 func (w *testBuffer) String() string {
 	return w.StringFunc()
+}
+
+func (w *testBuffer) Name() string {
+	return w.NameFunc()
 }
 
 //nolint:paralleltest
