@@ -21,7 +21,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 
 		// const Find{StructName}ByPKQuery = `SELECT {column_name1}, {column_name2} FROM {table_name} WHERE {pk1} = ? [AND ...]`
 		//
-		//	func (q *query) Find{StructName}ByPK(ctx context.Context, queryer sqlQueryerContext, pk1 pk1type, ...) ({Struct}, error) {
+		//	func (q *query) Find{StructName}ByPK(ctx context.Context, queryer QueryerContext, pk1 pk1type, ...) ({Struct}, error) {
 		//		row := queryer.QueryRowContext(ctx, Find{StructName}Query, pk1, ...)
 		//		var s {Struct}
 		//		if err := row.Scan(
@@ -51,7 +51,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 				Name: &ast.Ident{Name: byPKFuncName},
 				Recv: &ast.FieldList{List: []*ast.Field{{
 					Names: []*ast.Ident{{Name: "q"}},
-					Type:  &ast.StarExpr{X: &ast.Ident{Name: config.GoCRUDTypeNameUnexported()}},
+					Type:  &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}},
 				}}},
 				Type: &ast.FuncType{
 					Params: &ast.FieldList{
@@ -61,8 +61,8 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 								Type:  &ast.Ident{Name: "context.Context"},
 							},
 							{
-								Names: []*ast.Ident{{Name: sqlQueryerContextVarName}},
-								Type:  &ast.Ident{Name: sqlQueryerContextTypeName},
+								Names: []*ast.Ident{{Name: queryerContextVarName}},
+								Type:  &ast.Ident{Name: queryerContextTypeName},
 							},
 						},
 							func() []*ast.Field {
@@ -77,7 +77,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 							}()...),
 					},
 					Results: &ast.FieldList{List: []*ast.Field{
-						{Type: &ast.StarExpr{X: &ast.Ident{Name: "dao." + structName}}},
+						{Type: &ast.StarExpr{X: &ast.Ident{Name: importName + "." + structName}}},
 						{Type: &ast.Ident{Name: "error"}},
 					}},
 				},
@@ -98,7 +98,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 							Lhs: []ast.Expr{&ast.Ident{Name: "row"}},
 							Tok: token.DEFINE,
 							Rhs: []ast.Expr{&ast.CallExpr{
-								Fun: &ast.SelectorExpr{X: &ast.Ident{Name: sqlQueryerContextVarName}, Sel: &ast.Ident{Name: "QueryRowContext"}},
+								Fun: &ast.SelectorExpr{X: &ast.Ident{Name: queryerContextVarName}, Sel: &ast.Ident{Name: "QueryRowContext"}},
 								Args: append(
 									[]ast.Expr{
 										&ast.Ident{Name: "ctx"},
@@ -118,7 +118,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 							Tok: token.VAR,
 							Specs: []ast.Spec{&ast.ValueSpec{
 								Names: []*ast.Ident{{Name: "s"}},
-								Type:  &ast.Ident{Name: "dao." + structName},
+								Type:  &ast.Ident{Name: importName + "." + structName},
 							}},
 						}},
 						// if err := row.Scan(&s.{ColumnName1}, &s.{ColumnName2}); err != nil {
@@ -167,7 +167,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 		for _, hasOneTag := range tableInfo.HasOneTags {
 			// const Find{StructName}By{FieldName}Query = `SELECT {column_name1}, {column_name2} FROM {table_name} WHERE {column} = ? [AND ...]`
 			//
-			//	func (q *queryer) Find{StructName}ByColumn1[AndColumn2](ctx context.Context, queryer sqlQueryerContext, {ColumnName} {ColumnType} [, {Column2Name} {Column2Type}]) ({Struct}Slice, error) {
+			//	func (q *queryer) Find{StructName}ByColumn1[AndColumn2](ctx context.Context, queryer QueryerContext, {ColumnName} {ColumnType} [, {Column2Name} {Column2Type}]) ({Struct}Slice, error) {
 			//		row := queryer.QueryRowContext(ctx, Find{StructName}Query, {ColumnName}, {Column2Name})
 			//		var s {Struct}
 			//		if err := row.Scan(
@@ -198,7 +198,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 					Name: &ast.Ident{Name: byHasOneTagFuncName},
 					Recv: &ast.FieldList{List: []*ast.Field{{
 						Names: []*ast.Ident{{Name: "q"}},
-						Type:  &ast.StarExpr{X: &ast.Ident{Name: config.GoCRUDTypeNameUnexported()}},
+						Type:  &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}},
 					}}},
 					Type: &ast.FuncType{
 						Params: &ast.FieldList{
@@ -208,8 +208,8 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 									Type:  &ast.Ident{Name: "context.Context"},
 								},
 								{
-									Names: []*ast.Ident{{Name: sqlQueryerContextVarName}},
-									Type:  &ast.Ident{Name: sqlQueryerContextTypeName},
+									Names: []*ast.Ident{{Name: queryerContextVarName}},
+									Type:  &ast.Ident{Name: queryerContextTypeName},
 								},
 							},
 								func() []*ast.Field {
@@ -224,7 +224,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 								}()...),
 						},
 						Results: &ast.FieldList{List: []*ast.Field{
-							{Type: &ast.StarExpr{X: &ast.Ident{Name: "dao." + structName}}},
+							{Type: &ast.StarExpr{X: &ast.Ident{Name: importName + "." + structName}}},
 							{Type: &ast.Ident{Name: "error"}},
 						}},
 					},
@@ -245,7 +245,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 								Lhs: []ast.Expr{&ast.Ident{Name: "row"}},
 								Tok: token.DEFINE,
 								Rhs: []ast.Expr{&ast.CallExpr{
-									Fun: &ast.SelectorExpr{X: &ast.Ident{Name: sqlQueryerContextVarName}, Sel: &ast.Ident{Name: "QueryRowContext"}},
+									Fun: &ast.SelectorExpr{X: &ast.Ident{Name: queryerContextVarName}, Sel: &ast.Ident{Name: "QueryRowContext"}},
 									Args: append(
 										[]ast.Expr{
 											&ast.Ident{Name: "ctx"},
@@ -265,7 +265,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 								Tok: token.VAR,
 								Specs: []ast.Spec{&ast.ValueSpec{
 									Names: []*ast.Ident{{Name: "s"}},
-									Type:  &ast.Ident{Name: "dao." + structName},
+									Type:  &ast.Ident{Name: importName + "." + structName},
 								}},
 							}},
 							// if err := row.Scan(&s.{ColumnName1}, &s.{ColumnName2}); err != nil {
@@ -315,7 +315,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 		for _, hasManyTag := range tableInfo.HasManyTags {
 			// const List{StructName}By{FieldName}Query = `SELECT {column_name1}, {column_name2} FROM {table_name} WHERE {pk1} = ? [AND ...]`
 			//
-			//	func (q *query) List{StructName}ByColumn1[AndColumn2](ctx context.Context, queryer sqlQueryerContext, {ColumnName} {ColumnType} [, {Column2Name} {Column2Type}]) ({Struct}Slice, error) {
+			//	func (q *query) List{StructName}ByColumn1[AndColumn2](ctx context.Context, queryer QueryerContext, {ColumnName} {ColumnType} [, {Column2Name} {Column2Type}]) ({Struct}Slice, error) {
 			//		rows, err := queryer.QueryContext(ctx, List{StructName}Query, {ColumnName}, {Column2Name})
 			// 		if err != nil {
 			// 			return nil, fmt.Errorf("queryer.QueryContext: %w", err)
@@ -339,9 +339,9 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 			//		}
 			//		return ss, nil
 			//	}
-			structSliceType := "[]*dao." + structName
+			structSliceType := "[]*" + importName + "." + structName
 			if sliceSuffix := config.GoSliceTypeSuffix(); sliceSuffix != "" {
-				structSliceType = "dao." + structName + sliceSuffix
+				structSliceType = importName + "." + structName + sliceSuffix
 			}
 			byHasOneTagFuncName := "List" + structName + "By" + hasManyTag
 			byHasOneTagQueryName := byHasOneTagFuncName + "Query"
@@ -363,14 +363,14 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 					Name: &ast.Ident{Name: byHasOneTagFuncName},
 					Recv: &ast.FieldList{List: []*ast.Field{{
 						Names: []*ast.Ident{{Name: "q"}},
-						Type:  &ast.StarExpr{X: &ast.Ident{Name: config.GoCRUDTypeNameUnexported()}},
+						Type:  &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}},
 					}}},
 					Type: &ast.FuncType{
 						Params: &ast.FieldList{
 							List: append(
 								[]*ast.Field{
 									{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
-									{Names: []*ast.Ident{{Name: sqlQueryerContextVarName}}, Type: &ast.Ident{Name: sqlQueryerContextTypeName}},
+									{Names: []*ast.Ident{{Name: queryerContextVarName}}, Type: &ast.Ident{Name: queryerContextTypeName}},
 								},
 								func() []*ast.Field {
 									fields := make([]*ast.Field, 0)
@@ -402,7 +402,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 								Lhs: []ast.Expr{&ast.Ident{Name: "rows"}, &ast.Ident{Name: "err"}},
 								Tok: token.DEFINE,
 								Rhs: []ast.Expr{&ast.CallExpr{
-									Fun: &ast.SelectorExpr{X: &ast.Ident{Name: sqlQueryerContextVarName}, Sel: &ast.Ident{Name: "QueryContext"}},
+									Fun: &ast.SelectorExpr{X: &ast.Ident{Name: queryerContextVarName}, Sel: &ast.Ident{Name: "QueryContext"}},
 									Args: append(
 										[]ast.Expr{
 											&ast.Ident{Name: "ctx"},
@@ -452,7 +452,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 										Tok: token.VAR,
 										Specs: []ast.Spec{&ast.ValueSpec{
 											Names: []*ast.Ident{{Name: "s"}},
-											Type:  &ast.Ident{Name: "dao." + structName},
+											Type:  &ast.Ident{Name: importName + "." + structName},
 										}},
 									}},
 									//			if err := rows.Scan(&s.{ColumnName1}, &s.{ColumnName2}); err != nil {

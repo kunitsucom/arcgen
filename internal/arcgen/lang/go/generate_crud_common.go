@@ -31,8 +31,9 @@ func fprintCRUDCommon(osFile osFile, buf buffer, arcSrcSetSlice ARCSourceSetSlic
 }
 
 const (
-	sqlQueryerContextVarName  = "sqlContext"
-	sqlQueryerContextTypeName = "sqlQueryerContext"
+	importName             = "orm"
+	queryerContextVarName  = "queryerContext"
+	queryerContextTypeName = "QueryerContext"
 )
 
 //nolint:cyclop,funlen,gocognit,maintidx
@@ -40,7 +41,7 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 	astFile := &ast.File{
 		// package
 		Name: &ast.Ident{
-			Name: config.GoCRUDPackageName(),
+			Name: config.GoORMPackageName(),
 		},
 		// methods
 		Decls: []ast.Decl{},
@@ -60,7 +61,7 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 		//		"database/sql"
 		//		"log/slog"
 		//
-		//		dao "path/to/your/dao"
+		//		orm "path/to/your/orm"
 		//	)
 		&ast.GenDecl{
 			Tok: token.IMPORT,
@@ -75,14 +76,14 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("log/slog")},
 				},
 				&ast.ImportSpec{
-					Name: &ast.Ident{Name: "dao"},
+					Name: &ast.Ident{Name: importName},
 					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(structPackagePath)},
 				},
 			},
 		},
 	)
 
-	//	type sqlQueryerContext interface {
+	//	type QueryerContext interface {
 	//		QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
 	//		QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 	//		ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
@@ -93,7 +94,7 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 			Specs: []ast.Spec{
 				&ast.TypeSpec{
 					// Assign: token.Pos(1),
-					Name: &ast.Ident{Name: sqlQueryerContextTypeName},
+					Name: &ast.Ident{Name: queryerContextTypeName},
 					Type: &ast.InterfaceType{
 						Methods: &ast.FieldList{
 							List: []*ast.Field{
@@ -153,7 +154,7 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 			Tok: token.TYPE,
 			Specs: []ast.Spec{
 				&ast.TypeSpec{
-					Name: &ast.Ident{Name: config.GoCRUDTypeNameUnexported()},
+					Name: &ast.Ident{Name: config.GoORMStructName()},
 					Type: &ast.StructType{Fields: &ast.FieldList{}},
 				},
 			},
@@ -221,7 +222,7 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 	)
 
 	//	type CRUD interface {
-	//		Create{StructName}(ctx context.Context, sqlQueryer sqlQueryerContext, s *{Struct}) error
+	//		Create{StructName}(ctx context.Context, queryerContext QueryerContext, s *{Struct}) error
 	//		...
 	//	}
 	methods := make([]*ast.Field, 0)
@@ -241,7 +242,7 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 				if n.Recv != nil && len(n.Recv.List) > 0 {
 					if t, ok := n.Recv.List[0].Type.(*ast.StarExpr); ok {
 						if ident, ok := t.X.(*ast.Ident); ok {
-							if ident.Name == config.GoCRUDTypeNameUnexported() {
+							if ident.Name == config.GoORMStructName() {
 								methods = append(methods, &ast.Field{
 									Names: []*ast.Ident{{Name: n.Name.Name}},
 									Type:  n.Type,
@@ -261,7 +262,7 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 			Tok: token.TYPE,
 			Specs: []ast.Spec{
 				&ast.TypeSpec{
-					Name: &ast.Ident{Name: config.GoCRUDTypeName()},
+					Name: &ast.Ident{Name: config.GoORMTypeName()},
 					Type: &ast.InterfaceType{
 						Methods: &ast.FieldList{List: methods},
 					},
@@ -275,9 +276,9 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 	//	}
 	astFile.Decls = append(astFile.Decls,
 		&ast.FuncDecl{
-			Name: &ast.Ident{Name: "New" + config.GoCRUDTypeName()},
-			Type: &ast.FuncType{Results: &ast.FieldList{List: []*ast.Field{{Type: &ast.Ident{Name: config.GoCRUDTypeName()}}}}},
-			Body: &ast.BlockStmt{List: []ast.Stmt{&ast.ReturnStmt{Results: []ast.Expr{&ast.UnaryExpr{Op: token.AND, X: &ast.Ident{Name: config.GoCRUDTypeNameUnexported() + "{}"}}}}}},
+			Name: &ast.Ident{Name: "New" + config.GoORMTypeName()},
+			Type: &ast.FuncType{Results: &ast.FieldList{List: []*ast.Field{{Type: &ast.Ident{Name: config.GoORMTypeName()}}}}},
+			Body: &ast.BlockStmt{List: []ast.Stmt{&ast.ReturnStmt{Results: []ast.Expr{&ast.UnaryExpr{Op: token.AND, X: &ast.Ident{Name: config.GoORMStructName() + "{}"}}}}}},
 		},
 	)
 
