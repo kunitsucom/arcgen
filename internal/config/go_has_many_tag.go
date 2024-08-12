@@ -7,7 +7,7 @@ import (
 )
 
 func loadGoHasManyTag(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionGoHasManyTag)
+	v, _ := cmd.GetOptionString(OptionGoHasManyTag)
 	return v
 }
 

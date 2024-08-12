@@ -7,7 +7,7 @@ import (
 )
 
 func loadGoPKTag(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionGoPKTag)
+	v, _ := cmd.GetOptionString(OptionGoPKTag)
 	return v
 }
 

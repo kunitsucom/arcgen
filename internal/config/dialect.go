@@ -7,7 +7,7 @@ import (
 )
 
 func loadDialect(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionDialect)
+	v, _ := cmd.GetOptionString(OptionDialect)
 	return v
 }
 

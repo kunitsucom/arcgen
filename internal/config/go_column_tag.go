@@ -7,7 +7,7 @@ import (
 )
 
 func loadGoColumnTag(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionGoColumnTag)
+	v, _ := cmd.GetOptionString(OptionGoColumnTag)
 	return v
 }
 

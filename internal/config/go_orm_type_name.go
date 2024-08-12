@@ -7,7 +7,7 @@ import (
 )
 
 func loadGoORMTypeName(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionGoORMTypeName)
+	v, _ := cmd.GetOptionString(OptionGoORMTypeName)
 	return v
 }
 

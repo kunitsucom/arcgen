@@ -44,9 +44,13 @@ func generateORMFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error)
 		Decls: []ast.Decl{},
 	}
 
-	structPackagePath, err := util.GetPackagePath(filepath.Dir(arcSrcSet.Filename))
-	if err != nil {
-		return "", errorz.Errorf("GetPackagePath: %w", err)
+	structPackageImportPath := config.GoORMStructPackageImportPath()
+	if structPackageImportPath == "" {
+		var err error
+		structPackageImportPath, err = util.GetPackageImportPath(filepath.Dir(arcSrcSet.Filename))
+		if err != nil {
+			return "", errorz.Errorf("GetPackagePath: %w", err)
+		}
 	}
 
 	// import
@@ -68,7 +72,7 @@ func generateORMFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error)
 				},
 				&ast.ImportSpec{
 					Name: &ast.Ident{Name: importName},
-					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(structPackagePath)},
+					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(structPackageImportPath)},
 				},
 			},
 		},

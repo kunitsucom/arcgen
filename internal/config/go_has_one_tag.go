@@ -7,7 +7,7 @@ import (
 )
 
 func loadGoHasOneTag(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionGoHasOneTag)
+	v, _ := cmd.GetOptionString(OptionGoHasOneTag)
 	return v
 }
 

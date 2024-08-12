@@ -7,7 +7,7 @@ import (
 )
 
 func loadTrace(_ context.Context, cmd *cliz.Command) bool {
-	v, _ := cmd.GetOptionBool(_OptionTrace)
+	v, _ := cmd.GetOptionBool(OptionTrace)
 	return v
 }
 

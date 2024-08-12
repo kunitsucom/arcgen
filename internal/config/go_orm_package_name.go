@@ -8,7 +8,7 @@ import (
 )
 
 func loadGoORMPackageName(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionGoORMPackageName)
+	v, _ := cmd.GetOptionString(OptionGoORMPackageName)
 	return v
 }
 
@@ -17,7 +17,7 @@ func GoORMPackageName() string {
 	defer globalConfigMu.Unlock()
 
 	if globalConfig.GoORMPackageName == "" {
-		globalConfig.GoORMPackageName = filepath.Base(globalConfig.GoORMPackagePath)
+		globalConfig.GoORMPackageName = filepath.Base(globalConfig.GoORMOutputPath)
 	}
 
 	return globalConfig.GoORMPackageName

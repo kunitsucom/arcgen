@@ -52,10 +52,13 @@ func generateORMCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice, 
 
 	// Since all directories are the same from arcSrcSetSlice[0].Filename to arcSrcSetSlice[len(-1)].Filename,
 	// get the package path from arcSrcSetSlice[0].Filename.
-	dir := filepath.Dir(arcSrcSetSlice[0].Filename)
-	structPackagePath, err := util.GetPackagePath(dir)
-	if err != nil {
-		return "", errorz.Errorf("GetPackagePath: %w", err)
+	structPackageImportPath := config.GoORMStructPackageImportPath()
+	if structPackageImportPath == "" {
+		var err error
+		structPackageImportPath, err = util.GetPackageImportPath(filepath.Dir(arcSrcSetSlice[0].Filename))
+		if err != nil {
+			return "", errorz.Errorf("GetPackagePath: %w", err)
+		}
 	}
 
 	astFile.Decls = append(astFile.Decls,
@@ -80,7 +83,7 @@ func generateORMCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice, 
 				},
 				&ast.ImportSpec{
 					Name: &ast.Ident{Name: importName},
-					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(structPackagePath)},
+					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(structPackageImportPath)},
 				},
 			},
 		},
