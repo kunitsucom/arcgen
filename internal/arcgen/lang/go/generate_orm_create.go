@@ -36,7 +36,7 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 						Names: []*ast.Ident{{Name: queryName}},
 						Values: []ast.Expr{&ast.BasicLit{
 							Kind:  token.STRING,
-							Value: "`INSERT INTO " + tableName + " (" + strings.Join(columnNames, ", ") + ") VALUES (" + columnValuesPlaceholder(columnNames) + ")`",
+							Value: "`INSERT INTO " + tableName + " (" + strings.Join(columnNames, ", ") + ") VALUES (" + columnValuesPlaceholder(columnNames, 1) + ")`",
 						}},
 					},
 				},

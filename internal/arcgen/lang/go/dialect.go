@@ -7,7 +7,8 @@ import (
 	"github.com/kunitsucom/arcgen/internal/config"
 )
 
-func columnValuesPlaceholder(columns []string) string {
+//nolint:cyclop
+func columnValuesPlaceholder(columns []string, initialNumber int) string {
 	switch config.Dialect() {
 	case "mysql", "sqlite3":
 		// ?, ?, ?, ...
@@ -15,28 +16,31 @@ func columnValuesPlaceholder(columns []string) string {
 	case "postgres", "cockroach":
 		// $1, $2, $3, ...
 		var s strings.Builder
-		s.WriteString("$1")
-		for i := 2; i <= len(columns); i++ {
-			s.WriteString(", $")
-			s.WriteString(strconv.Itoa(i))
+		for i := range columns {
+			if i > 0 {
+				s.WriteString(", ")
+			}
+			s.WriteString("$" + strconv.Itoa(i+initialNumber))
 		}
 		return s.String()
 	case "spanner":
 		// @column_1, @column_2, @column_3, ...
 		var s strings.Builder
-		s.WriteString("@" + columns[0])
-		for i := 2; i <= len(columns); i++ {
-			s.WriteString(", @")
-			s.WriteString(columns[i-1])
+		for i := range columns {
+			if i > 0 {
+				s.WriteString(", ")
+			}
+			s.WriteString("@" + columns[i])
 		}
 		return s.String()
 	case "oracle":
 		// :column_1, :column_2, :column_3, ...
 		var s strings.Builder
-		s.WriteString(":" + columns[0])
-		for i := 2; i <= len(columns); i++ {
-			s.WriteString(", :")
-			s.WriteString(columns[i-1])
+		for i := range columns {
+			if i > 0 {
+				s.WriteString(", ")
+			}
+			s.WriteString(":" + columns[i])
 		}
 		return s.String()
 	default:
@@ -46,7 +50,7 @@ func columnValuesPlaceholder(columns []string) string {
 }
 
 //nolint:unparam,cyclop
-func whereColumnsPlaceholder(columns []string, op string) string {
+func whereColumnsPlaceholder(columns []string, op string, initialNumber int) string {
 	switch config.Dialect() {
 	case "mysql", "sqlite3":
 		// column1 = ? AND column2 = ? AND column3 = ...
@@ -60,7 +64,7 @@ func whereColumnsPlaceholder(columns []string, op string) string {
 			}
 			s.WriteString(column)
 			s.WriteString(" = $")
-			s.WriteString(strconv.Itoa(i + 1))
+			s.WriteString(strconv.Itoa(i + initialNumber))
 		}
 		return s.String()
 	case "spanner":

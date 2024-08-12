@@ -42,7 +42,7 @@ func generateUPDATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 						Names: []*ast.Ident{{Name: queryName}},
 						Values: []ast.Expr{&ast.BasicLit{
 							Kind:  token.STRING,
-							Value: "`UPDATE " + tableName + " SET (" + strings.Join(nonPKColumnNames, ", ") + ") = (?" + strings.Repeat(", ?", len(nonPKColumns)-1) + ") WHERE " + whereColumnsPlaceholder(pkColumns.ColumnNames(), "AND") + "`",
+							Value: "`UPDATE " + tableName + " SET (" + strings.Join(nonPKColumnNames, ", ") + ") = (" + columnValuesPlaceholder(nonPKColumnNames, 1) + ") WHERE " + whereColumnsPlaceholder(pkColumns.ColumnNames(), "AND", len(nonPKColumnNames)+1) + "`",
 						}},
 					},
 				},
