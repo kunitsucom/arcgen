@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -77,20 +78,22 @@ func (a *ARCSource) extractTableNameFromCommentGroup() string {
 type TableInfo struct {
 	HasOneTags  []string
 	HasManyTags []string
-	Columns     []*ColumnInfo
+	Columns     ColumnInfos
 }
 
-func (t *TableInfo) ColumnNames() []string {
-	columnNames := make([]string, len(t.Columns))
-	for i := range t.Columns {
-		columnNames[i] = t.Columns[i].ColumnName
+type ColumnInfos []*ColumnInfo
+
+func (ss ColumnInfos) ColumnNames() []string {
+	columnNames := make([]string, len(ss))
+	for i := range ss {
+		columnNames[i] = ss[i].ColumnName
 	}
 	return columnNames
 }
 
-func (t *TableInfo) PrimaryKeys() []*ColumnInfo {
-	pks := make([]*ColumnInfo, 0, len(t.Columns))
-	for _, column := range t.Columns {
+func (ss ColumnInfos) PrimaryKeys() ColumnInfos {
+	pks := make(ColumnInfos, 0, len(ss))
+	for _, column := range ss {
 		if column.PK {
 			pks = append(pks, column)
 		}
@@ -98,9 +101,9 @@ func (t *TableInfo) PrimaryKeys() []*ColumnInfo {
 	return pks
 }
 
-func (t *TableInfo) NonPrimaryKeys() []*ColumnInfo {
-	nonPks := make([]*ColumnInfo, 0, len(t.Columns))
-	for _, column := range t.Columns {
+func (ss ColumnInfos) NonPrimaryKeys() ColumnInfos {
+	nonPks := make(ColumnInfos, 0, len(ss))
+	for _, column := range ss {
 		if !column.PK {
 			nonPks = append(nonPks, column)
 		}
@@ -108,10 +111,10 @@ func (t *TableInfo) NonPrimaryKeys() []*ColumnInfo {
 	return nonPks
 }
 
-func (t *TableInfo) HasOneTagColumnsByTag() map[string][]*ColumnInfo {
-	columns := make(map[string][]*ColumnInfo)
+func (t *TableInfo) HasOneTagColumnsByTag() map[string]ColumnInfos {
+	columns := make(map[string]ColumnInfos)
 	for _, hasOneTagInTable := range t.HasOneTags {
-		columns[hasOneTagInTable] = make([]*ColumnInfo, 0, len(t.Columns))
+		columns[hasOneTagInTable] = make(ColumnInfos, 0, len(t.Columns))
 		for _, column := range t.Columns {
 			for _, hasOneTag := range column.HasOneTags {
 				if hasOneTagInTable == hasOneTag {
@@ -124,10 +127,10 @@ func (t *TableInfo) HasOneTagColumnsByTag() map[string][]*ColumnInfo {
 	return columns
 }
 
-func (t *TableInfo) HasManyTagColumnsByTag() map[string][]*ColumnInfo {
-	columns := make(map[string][]*ColumnInfo)
+func (t *TableInfo) HasManyTagColumnsByTag() map[string]ColumnInfos {
+	columns := make(map[string]ColumnInfos)
 	for _, hasManyTagInTable := range t.HasManyTags {
-		columns[hasManyTagInTable] = make([]*ColumnInfo, 0, len(t.Columns))
+		columns[hasManyTagInTable] = make(ColumnInfos, 0, len(t.Columns))
 		for _, column := range t.Columns {
 			for _, hasManyTag := range column.HasManyTags {
 				if hasManyTagInTable == hasManyTag {
@@ -147,6 +150,48 @@ type ColumnInfo struct {
 	PK          bool
 	HasOneTags  []string
 	HasManyTags []string
+}
+
+func columnValuesPlaceholder(columns []string) string {
+	switch config.Dialect() {
+	case "mysql":
+		// ?, ?, ?, ...
+		return "?" + strings.Repeat(", ?", len(columns)-1)
+	default:
+		return func() string {
+			// $1, $2, $3, ...
+			var s strings.Builder
+			s.WriteString("$1")
+			for i := 2; i <= len(columns); i++ {
+				s.WriteString(", $")
+				s.WriteString(strconv.Itoa(i))
+			}
+			return s.String()
+		}()
+	}
+}
+
+//nolint:unparam
+func whereColumnsPlaceholder(columns []string, op string) string {
+	switch config.Dialect() {
+	case "mysql":
+		// column1 = ? AND column2 = ? AND column3 = ...
+		return strings.Join(columns, " = ? "+op+" ") + " = ?"
+	default:
+		return func() string {
+			// column1 = $1 AND column2 = $2 AND column3 = ...
+			var s strings.Builder
+			for i, column := range columns {
+				if i > 0 {
+					s.WriteString(" " + op + " ")
+				}
+				s.WriteString(column)
+				s.WriteString(" = $")
+				s.WriteString(strconv.Itoa(i + 1))
+			}
+			return s.String()
+		}()
+	}
 }
 
 func fieldName(x ast.Expr) *ast.Ident {
