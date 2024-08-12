@@ -18,9 +18,9 @@ func generateDELETEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 
 		// const Delete{StructName}Query = `DELETE FROM {table_name} WHERE {pk1} = ? [AND {pk2} = ?]`
 		//
-		//	func (q *query) Delete{StructName}(ctx context.Context, queryer sqlQueryerContext, pk1 pk1type [, pk2 pk2type]) error {
-		//		if _, err := sqlContext.ExecContext(ctx, Delete{StructName}Query, pk1 [, pk2]); err != nil {
-		//			return fmt.Errorf("sqlContext.ExecContext: %w", err)
+		//	func (q *query) Delete{StructName}(ctx context.Context, queryer QueryerContext, pk1 pk1type [, pk2 pk2type]) error {
+		//		if _, err := queryerContext.ExecContext(ctx, Delete{StructName}Query, pk1 [, pk2]); err != nil {
+		//			return fmt.Errorf("queryerContext.ExecContext: %w", err)
 		//		}
 		//		return nil
 		//	}
@@ -47,13 +47,13 @@ func generateDELETEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 				},
 			},
 			&ast.FuncDecl{
-				Recv: &ast.FieldList{List: []*ast.Field{{Names: []*ast.Ident{{Name: "q"}}, Type: &ast.StarExpr{X: &ast.Ident{Name: config.GoCRUDTypeNameUnexported()}}}}},
+				Recv: &ast.FieldList{List: []*ast.Field{{Names: []*ast.Ident{{Name: "q"}}, Type: &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}}}}},
 				Name: &ast.Ident{Name: funcName},
 				Type: &ast.FuncType{
 					Params: &ast.FieldList{List: append(
 						[]*ast.Field{
 							{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
-							{Names: []*ast.Ident{{Name: sqlQueryerContextVarName}}, Type: &ast.Ident{Name: sqlQueryerContextTypeName}},
+							{Names: []*ast.Ident{{Name: queryerContextVarName}}, Type: &ast.Ident{Name: queryerContextTypeName}},
 						},
 						func() []*ast.Field {
 							var fields []*ast.Field
@@ -80,13 +80,13 @@ func generateDELETEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 							},
 						},
 						&ast.IfStmt{
-							//		if _, err := sqlContext.ExecContext(ctx, Delete{StructName}Query, pk1 [, pk2]); err != nil {
+							//		if _, err := queryerContext.ExecContext(ctx, Delete{StructName}Query, pk1 [, pk2]); err != nil {
 							Init: &ast.AssignStmt{
 								Lhs: []ast.Expr{&ast.Ident{Name: "_"}, &ast.Ident{Name: "err"}},
 								Tok: token.DEFINE,
 								Rhs: []ast.Expr{&ast.CallExpr{
 									Fun: &ast.SelectorExpr{
-										X:   &ast.Ident{Name: sqlQueryerContextVarName},
+										X:   &ast.Ident{Name: queryerContextVarName},
 										Sel: &ast.Ident{Name: "ExecContext"},
 									},
 									Args: append(
@@ -107,10 +107,10 @@ func generateDELETEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 							// err != nil {
 							Cond: &ast.BinaryExpr{X: &ast.Ident{Name: "err"}, Op: token.NEQ, Y: &ast.Ident{Name: "nil"}},
 							Body: &ast.BlockStmt{List: []ast.Stmt{
-								// return fmt.Errorf("sqlContext.ExecContext: %w", err)
+								// return fmt.Errorf("queryerContext.ExecContext: %w", err)
 								&ast.ReturnStmt{Results: []ast.Expr{&ast.CallExpr{
 									Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
-									Args: []ast.Expr{&ast.Ident{Name: strconv.Quote(sqlQueryerContextVarName + ".ExecContext: %w")}, &ast.Ident{Name: "err"}},
+									Args: []ast.Expr{&ast.Ident{Name: strconv.Quote(queryerContextVarName + ".ExecContext: %w")}, &ast.Ident{Name: "err"}},
 								}}},
 							}},
 						},

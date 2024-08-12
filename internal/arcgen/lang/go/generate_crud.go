@@ -38,7 +38,7 @@ func generateCRUDFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error
 	astFile := &ast.File{
 		// package
 		Name: &ast.Ident{
-			Name: config.GoCRUDPackageName(),
+			Name: config.GoORMPackageName(),
 		},
 		// methods
 		Decls: []ast.Decl{},
@@ -55,7 +55,7 @@ func generateCRUDFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error
 		//		"context"
 		//		"fmt"
 		//
-		//		dao "path/to/your/dao"
+		//		orm "path/to/your/orm"
 		//	)
 		&ast.GenDecl{
 			Tok: token.IMPORT,
@@ -67,7 +67,7 @@ func generateCRUDFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error
 					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("fmt")},
 				},
 				&ast.ImportSpec{
-					Name: &ast.Ident{Name: "dao"},
+					Name: &ast.Ident{Name: importName},
 					Path: &ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(structPackagePath)},
 				},
 			},

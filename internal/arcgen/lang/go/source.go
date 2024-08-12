@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -150,48 +149,6 @@ type ColumnInfo struct {
 	PK          bool
 	HasOneTags  []string
 	HasManyTags []string
-}
-
-func columnValuesPlaceholder(columns []string) string {
-	switch config.Dialect() {
-	case "mysql":
-		// ?, ?, ?, ...
-		return "?" + strings.Repeat(", ?", len(columns)-1)
-	default:
-		return func() string {
-			// $1, $2, $3, ...
-			var s strings.Builder
-			s.WriteString("$1")
-			for i := 2; i <= len(columns); i++ {
-				s.WriteString(", $")
-				s.WriteString(strconv.Itoa(i))
-			}
-			return s.String()
-		}()
-	}
-}
-
-//nolint:unparam
-func whereColumnsPlaceholder(columns []string, op string) string {
-	switch config.Dialect() {
-	case "mysql":
-		// column1 = ? AND column2 = ? AND column3 = ...
-		return strings.Join(columns, " = ? "+op+" ") + " = ?"
-	default:
-		return func() string {
-			// column1 = $1 AND column2 = $2 AND column3 = ...
-			var s strings.Builder
-			for i, column := range columns {
-				if i > 0 {
-					s.WriteString(" " + op + " ")
-				}
-				s.WriteString(column)
-				s.WriteString(" = $")
-				s.WriteString(strconv.Itoa(i + 1))
-			}
-			return s.String()
-		}()
-	}
 }
 
 func fieldName(x ast.Expr) *ast.Ident {
