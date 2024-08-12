@@ -19,10 +19,10 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 		columnNames := tableInfo.Columns.ColumnNames()
 		pks := tableInfo.Columns.PrimaryKeys()
 
-		// const Find{StructName}ByPKQuery = `SELECT {column_name1}, {column_name2} FROM {table_name} WHERE {pk1} = ? [AND ...]`
+		// const Get{StructName}ByPKQuery = `SELECT {column_name1}, {column_name2} FROM {table_name} WHERE {pk1} = ? [AND ...]`
 		//
-		//	func (q *query) Find{StructName}ByPK(ctx context.Context, queryer QueryerContext, pk1 pk1type, ...) ({Struct}, error) {
-		//		row := queryer.QueryRowContext(ctx, Find{StructName}Query, pk1, ...)
+		//	func (q *query) Get{StructName}ByPK(ctx context.Context, queryer QueryerContext, pk1 pk1type, ...) ({Struct}, error) {
+		//		row := queryer.QueryRowContext(ctx, Get{StructName}Query, pk1, ...)
 		//		var s {Struct}
 		//		if err := row.Scan(
 		//			&s.{ColumnName1},
@@ -32,7 +32,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 		//		}
 		//		return &s, nil
 		//	}
-		byPKFuncName := "Find" + structName + "ByPK"
+		byPKFuncName := readOneFuncPrefix + structName + "ByPK"
 		byPKQueryName := byPKFuncName + "Query"
 		astFile.Decls = append(astFile.Decls,
 			&ast.GenDecl{
@@ -79,7 +79,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 					}},
 				},
 				Body: &ast.BlockStmt{
-					// row, err := queryer.QueryRowContext(ctx, Find{StructName}Query, pk1, ...)
+					// row, err := queryer.QueryRowContext(ctx, Get{StructName}Query, pk1, ...)
 					List: []ast.Stmt{
 						&ast.ExprStmt{
 							//		LoggerFromContext(ctx).Debug(queryName)
@@ -165,10 +165,10 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 
 		hasOneColumnsByTag := tableInfo.HasOneTagColumnsByTag()
 		for _, hasOneTag := range tableInfo.HasOneTags {
-			// const Find{StructName}By{FieldName}Query = `SELECT {column_name1}, {column_name2} FROM {table_name} WHERE {column} = ? [AND ...]`
+			// const Get{StructName}By{FieldName}Query = `SELECT {column_name1}, {column_name2} FROM {table_name} WHERE {column} = ? [AND ...]`
 			//
-			//	func (q *queryer) Find{StructName}ByColumn1[AndColumn2](ctx context.Context, queryer QueryerContext, {ColumnName} {ColumnType} [, {Column2Name} {Column2Type}]) ({Struct}Slice, error) {
-			//		row := queryer.QueryRowContext(ctx, Find{StructName}Query, {ColumnName}, {Column2Name})
+			//	func (q *queryer) Get{StructName}ByColumn1[AndColumn2](ctx context.Context, queryer QueryerContext, {ColumnName} {ColumnType} [, {Column2Name} {Column2Type}]) ({Struct}Slice, error) {
+			//		row := queryer.QueryRowContext(ctx, Get{StructName}Query, {ColumnName}, {Column2Name})
 			//		var s {Struct}
 			//		if err := row.Scan(
 			//			&s.{ColumnName1},
@@ -178,7 +178,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 			//		}
 			//		return &s, nil
 			//	}
-			byHasOneTagFuncName := "Find" + structName + "By" + hasOneTag
+			byHasOneTagFuncName := readOneFuncPrefix + structName + "By" + hasOneTag
 			byHasOneTagQueryName := byHasOneTagFuncName + "Query"
 			hasOneColumns := hasOneColumnsByTag[hasOneTag]
 			astFile.Decls = append(astFile.Decls,
@@ -226,7 +226,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 						}},
 					},
 					Body: &ast.BlockStmt{
-						// row, err := queryer.QueryRowContext(ctx, Find{StructName}Query, column1, ...)
+						// row, err := queryer.QueryRowContext(ctx, Get{StructName}Query, column1, ...)
 						List: []ast.Stmt{
 							&ast.ExprStmt{
 								//		LoggerFromContext(ctx).Debug(queryName)
@@ -343,7 +343,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 			if sliceSuffix := config.GoSliceTypeSuffix(); sliceSuffix != "" {
 				structSliceType = importName + "." + structName + sliceSuffix
 			}
-			byHasOneTagFuncName := "List" + structName + "By" + hasManyTag
+			byHasOneTagFuncName := readManyFuncPrefix + structName + "By" + hasManyTag
 			byHasOneTagQueryName := byHasOneTagFuncName + "Query"
 			hasManyColumns := hasManyColumnsByTag[hasManyTag]
 			astFile.Decls = append(astFile.Decls,

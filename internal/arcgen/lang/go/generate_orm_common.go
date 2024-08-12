@@ -21,6 +21,8 @@ const (
 	receiverName           = "_orm"
 	queryerContextVarName  = "dbtx"
 	queryerContextTypeName = "DBTX"
+	readOneFuncPrefix      = "Get"
+	readManyFuncPrefix     = "List"
 )
 
 func fprintORMCommon(osFile osFile, buf buffer, arcSrcSetSlice ARCSourceSetSlice, crudFiles []string) error {
