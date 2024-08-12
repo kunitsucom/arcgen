@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"sync"
 
 	errorz "github.com/kunitsucom/util.go/errors"
@@ -179,7 +180,11 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 		},
 	}
 
-	remainingArgs, err = cmd.Parse(contexts.OSArgs(ctx))
+	osArgs := contexts.OSArgs(ctx)
+	if len(osArgs) == 0 {
+		osArgs = os.Args
+	}
+	remainingArgs, err = cmd.Parse(osArgs)
 	if err != nil {
 		return nil, nil, errorz.Errorf("cmd.Parse: %w", err)
 	}
