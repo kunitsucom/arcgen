@@ -49,10 +49,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 			},
 			&ast.FuncDecl{
 				Name: &ast.Ident{Name: byPKFuncName},
-				Recv: &ast.FieldList{List: []*ast.Field{{
-					Names: []*ast.Ident{{Name: "q"}},
-					Type:  &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}},
-				}}},
+				Recv: &ast.FieldList{List: []*ast.Field{{Names: []*ast.Ident{{Name: receiverName}}, Type: &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}}}}},
 				Type: &ast.FuncType{
 					Params: &ast.FieldList{
 						List: append([]*ast.Field{
@@ -150,8 +147,11 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 								&ast.ReturnStmt{Results: []ast.Expr{
 									&ast.Ident{Name: "nil"},
 									&ast.CallExpr{
-										Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
-										Args: []ast.Expr{&ast.Ident{Name: strconv.Quote("row.Scan: %w")}, &ast.Ident{Name: "err"}},
+										Fun: &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
+										Args: []ast.Expr{&ast.Ident{Name: strconv.Quote("row.Scan: %w")}, &ast.CallExpr{
+											Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: receiverName}, Sel: &ast.Ident{Name: "HandleError"}},
+											Args: []ast.Expr{&ast.Ident{Name: "ctx"}, &ast.Ident{Name: "err"}},
+										}},
 									},
 								}},
 							}},
@@ -196,10 +196,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 				},
 				&ast.FuncDecl{
 					Name: &ast.Ident{Name: byHasOneTagFuncName},
-					Recv: &ast.FieldList{List: []*ast.Field{{
-						Names: []*ast.Ident{{Name: "q"}},
-						Type:  &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}},
-					}}},
+					Recv: &ast.FieldList{List: []*ast.Field{{Names: []*ast.Ident{{Name: receiverName}}, Type: &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}}}}},
 					Type: &ast.FuncType{
 						Params: &ast.FieldList{
 							List: append([]*ast.Field{
@@ -293,12 +290,15 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 								},
 								Cond: &ast.BinaryExpr{X: &ast.Ident{Name: "err"}, Op: token.NEQ, Y: &ast.Ident{Name: "nil"}},
 								Body: &ast.BlockStmt{List: []ast.Stmt{
-									// return fmt.Errorf("row.Scan: %w", err)
+									// return nil, fmt.Errorf("row.Scan: %w", err)
 									&ast.ReturnStmt{Results: []ast.Expr{
 										&ast.Ident{Name: "nil"},
 										&ast.CallExpr{
-											Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
-											Args: []ast.Expr{&ast.Ident{Name: strconv.Quote("row.Scan: %w")}, &ast.Ident{Name: "err"}},
+											Fun: &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
+											Args: []ast.Expr{&ast.Ident{Name: strconv.Quote("row.Scan: %w")}, &ast.CallExpr{
+												Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: receiverName}, Sel: &ast.Ident{Name: "HandleError"}},
+												Args: []ast.Expr{&ast.Ident{Name: "ctx"}, &ast.Ident{Name: "err"}},
+											}},
 										},
 									}},
 								}},
@@ -361,10 +361,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 				},
 				&ast.FuncDecl{
 					Name: &ast.Ident{Name: byHasOneTagFuncName},
-					Recv: &ast.FieldList{List: []*ast.Field{{
-						Names: []*ast.Ident{{Name: "q"}},
-						Type:  &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}},
-					}}},
+					Recv: &ast.FieldList{List: []*ast.Field{{Names: []*ast.Ident{{Name: receiverName}}, Type: &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}}}}},
 					Type: &ast.FuncType{
 						Params: &ast.FieldList{
 							List: append(
@@ -419,7 +416,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 								}},
 							},
 							// 		if err != nil {
-							// 			return nil, fmt.Errorf("queryer.QueryContext: %w", err)
+							// 			return nil, fmt.Errorf("queryerContext.QueryContext: %w", err)
 							// 		}
 							&ast.IfStmt{
 								Cond: &ast.BinaryExpr{X: &ast.Ident{Name: "err"}, Op: token.NEQ, Y: &ast.Ident{Name: "nil"}},
@@ -427,8 +424,11 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 									&ast.ReturnStmt{Results: []ast.Expr{
 										&ast.Ident{Name: "nil"},
 										&ast.CallExpr{
-											Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
-											Args: []ast.Expr{&ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("queryer.QueryContext: %w")}, &ast.Ident{Name: "err"}},
+											Fun: &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
+											Args: []ast.Expr{&ast.BasicLit{Kind: token.STRING, Value: strconv.Quote(queryerContextVarName + ".QueryContext: %w")}, &ast.CallExpr{
+												Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: receiverName}, Sel: &ast.Ident{Name: "HandleError"}},
+												Args: []ast.Expr{&ast.Ident{Name: "ctx"}, &ast.Ident{Name: "err"}},
+											}},
 										},
 									}},
 								}},
@@ -484,8 +484,11 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 												Results: []ast.Expr{
 													&ast.Ident{Name: "nil"},
 													&ast.CallExpr{
-														Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
-														Args: []ast.Expr{&ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("rows.Scan: %w")}, &ast.Ident{Name: "err"}},
+														Fun: &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
+														Args: []ast.Expr{&ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("rows.Scan: %w")}, &ast.CallExpr{
+															Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: receiverName}, Sel: &ast.Ident{Name: "HandleError"}},
+															Args: []ast.Expr{&ast.Ident{Name: "ctx"}, &ast.Ident{Name: "err"}},
+														}},
 													},
 												},
 											},
@@ -525,8 +528,11 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 											Results: []ast.Expr{
 												&ast.Ident{Name: "nil"},
 												&ast.CallExpr{
-													Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
-													Args: []ast.Expr{&ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("rows.Close: %w")}, &ast.Ident{Name: "err"}},
+													Fun: &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
+													Args: []ast.Expr{&ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("rows.Close: %w")}, &ast.CallExpr{
+														Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: receiverName}, Sel: &ast.Ident{Name: "HandleError"}},
+														Args: []ast.Expr{&ast.Ident{Name: "ctx"}, &ast.Ident{Name: "err"}},
+													}},
 												},
 											},
 										},
@@ -551,8 +557,11 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 											Results: []ast.Expr{
 												&ast.Ident{Name: "nil"},
 												&ast.CallExpr{
-													Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
-													Args: []ast.Expr{&ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("rows.Err: %w")}, &ast.Ident{Name: "err"}},
+													Fun: &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
+													Args: []ast.Expr{&ast.BasicLit{Kind: token.STRING, Value: strconv.Quote("rows.Err: %w")}, &ast.CallExpr{
+														Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: receiverName}, Sel: &ast.Ident{Name: "HandleError"}},
+														Args: []ast.Expr{&ast.Ident{Name: "ctx"}, &ast.Ident{Name: "err"}},
+													}},
 												},
 											},
 										},
