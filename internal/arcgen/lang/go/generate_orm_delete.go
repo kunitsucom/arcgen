@@ -41,7 +41,7 @@ func generateDELETEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 						Names: []*ast.Ident{{Name: queryName}},
 						Values: []ast.Expr{&ast.BasicLit{
 							Kind:  token.STRING,
-							Value: "`DELETE FROM " + tableName + " WHERE " + whereColumnsPlaceholder(pkColumnNames, "AND") + "`",
+							Value: "`DELETE FROM " + tableName + " WHERE " + whereColumnsPlaceholder(pkColumnNames, "AND", 1) + "`",
 						}},
 					},
 				},
