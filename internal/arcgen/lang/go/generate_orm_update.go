@@ -48,7 +48,7 @@ func generateUPDATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 				},
 			},
 			&ast.FuncDecl{
-				Recv: &ast.FieldList{List: []*ast.Field{{Names: []*ast.Ident{{Name: "q"}}, Type: &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}}}}},
+				Recv: &ast.FieldList{List: []*ast.Field{{Names: []*ast.Ident{{Name: receiverName}}, Type: &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}}}}},
 				Name: &ast.Ident{Name: funcName},
 				Type: &ast.FuncType{
 					Params: &ast.FieldList{List: []*ast.Field{
@@ -110,8 +110,11 @@ func generateUPDATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 							Body: &ast.BlockStmt{List: []ast.Stmt{
 								// return fmt.Errorf("queryerContext.ExecContext: %w", err)
 								&ast.ReturnStmt{Results: []ast.Expr{&ast.CallExpr{
-									Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
-									Args: []ast.Expr{&ast.Ident{Name: strconv.Quote(queryerContextVarName + ".ExecContext: %w")}, &ast.Ident{Name: "err"}},
+									Fun: &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
+									Args: []ast.Expr{&ast.Ident{Name: strconv.Quote(queryerContextVarName + ".ExecContext: %w")}, &ast.CallExpr{
+										Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: receiverName}, Sel: &ast.Ident{Name: "HandleError"}},
+										Args: []ast.Expr{&ast.Ident{Name: "ctx"}, &ast.Ident{Name: "err"}},
+									}},
 								}}},
 							}},
 						},

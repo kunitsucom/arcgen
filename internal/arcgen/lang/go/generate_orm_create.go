@@ -19,10 +19,10 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 
 		// const Create{StructName}Query = `INSERT INTO {table_name} ({column_name1}, {column_name2}) VALUES ($1, $2)`
 		//
-		//	func (q *query) Create{StructName}(ctx context.Context, queryer QueryerContext, s *{Struct}) error {
+		//	func (orm *_ORM) Create{StructName}(ctx context.Context, queryer QueryerContext, s *{Struct}) error {
 		//		LoggerFromContext(ctx).Debug(Create{StructName}Query)
 		//		if _, err := queryerContext.ExecContext(ctx, Create{StructName}Query, s.{ColumnName1}, s.{ColumnName2}); err != nil {
-		//			return fmt.Errorf("queryerContext.ExecContext: %w", err)
+		//			return fmt.Errorf("queryerContext.ExecContext: %w", orm.HandleError(err))
 		//		}
 		//		return nil
 		//	}
@@ -42,7 +42,7 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 				},
 			},
 			&ast.FuncDecl{
-				Recv: &ast.FieldList{List: []*ast.Field{{Names: []*ast.Ident{{Name: "q"}}, Type: &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}}}}},
+				Recv: &ast.FieldList{List: []*ast.Field{{Names: []*ast.Ident{{Name: receiverName}}, Type: &ast.StarExpr{X: &ast.Ident{Name: config.GoORMStructName()}}}}},
 				Name: &ast.Ident{Name: funcName},
 				Type: &ast.FuncType{
 					Params: &ast.FieldList{List: []*ast.Field{
@@ -95,8 +95,11 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 							Body: &ast.BlockStmt{List: []ast.Stmt{
 								// return fmt.Errorf("queryerContext.ExecContext: %w", err)
 								&ast.ReturnStmt{Results: []ast.Expr{&ast.CallExpr{
-									Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
-									Args: []ast.Expr{&ast.Ident{Name: strconv.Quote(queryerContextVarName + ".ExecContext: %w")}, &ast.Ident{Name: "err"}},
+									Fun: &ast.SelectorExpr{X: &ast.Ident{Name: "fmt"}, Sel: &ast.Ident{Name: "Errorf"}},
+									Args: []ast.Expr{&ast.Ident{Name: strconv.Quote(queryerContextVarName + ".ExecContext: %w")}, &ast.CallExpr{
+										Fun:  &ast.SelectorExpr{X: &ast.Ident{Name: receiverName}, Sel: &ast.Ident{Name: "HandleError"}},
+										Args: []ast.Expr{&ast.Ident{Name: "ctx"}, &ast.Ident{Name: "err"}},
+									}},
 								}}},
 							}},
 						},
