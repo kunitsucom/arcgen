@@ -7,7 +7,7 @@ import (
 )
 
 func loadDebug(_ context.Context, cmd *cliz.Command) bool {
-	v, _ := cmd.GetOptionBool(_OptionDebug)
+	v, _ := cmd.GetOptionBool(OptionDebug)
 	return v
 }
 

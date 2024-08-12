@@ -62,7 +62,7 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 			// closure for defer
 			if err := func() error {
 				filePathWithoutExt := strings.TrimSuffix(filepath.Base(arcSrcSet.Filename), fileExt)
-				filename := filepath.Join(config.GoORMPackagePath(), filePathWithoutExt+crudFileExt)
+				filename := filepath.Join(config.GoORMOutputPath(), filePathWithoutExt+crudFileExt)
 				f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rw_r__r__)
 				if err != nil {
 					return errorz.Errorf("os.OpenFile: %w", err)
@@ -84,7 +84,7 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 		}
 
 		if err := func() error {
-			filename := filepath.Join(config.GoORMPackagePath(), "common"+crudFileExt)
+			filename := filepath.Join(config.GoORMOutputPath(), "common"+crudFileExt)
 			f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rw_r__r__)
 			if err != nil {
 				return errorz.Errorf("os.OpenFile: %w", err)

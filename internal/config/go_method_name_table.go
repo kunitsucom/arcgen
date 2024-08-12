@@ -7,7 +7,7 @@ import (
 )
 
 func loadGoMethodNameTable(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionGoMethodNameTable)
+	v, _ := cmd.GetOptionString(OptionGoMethodNameTable)
 	return v
 }
 

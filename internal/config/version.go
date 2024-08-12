@@ -7,7 +7,7 @@ import (
 )
 
 func loadVersion(_ context.Context, cmd *cliz.Command) bool {
-	v, _ := cmd.GetOptionBool(_OptionVersion)
+	v, _ := cmd.GetOptionBool(OptionVersion)
 	return v
 }
 

@@ -4,23 +4,24 @@ import (
 	"fmt"
 	"go/build"
 	"path/filepath"
+
+	apperr "github.com/kunitsucom/arcgen/pkg/errors"
 )
 
-func GetPackagePath(dir string) (string, error) {
-	absDir, err := filepath.Abs(dir)
+func GetPackageImportPath(path string) (string, error) {
+	absDir, err := filepath.Abs(path)
 	if err != nil {
-		return "", fmt.Errorf("failed to get absolute path: %w", err)
+		return "", fmt.Errorf("filepath.Abs: path=%s %w", path, err)
 	}
 
 	pkg, err := build.ImportDir(absDir, build.FindOnly)
 	if err != nil {
-		return "", fmt.Errorf("failed to import directory: %w", err)
+		return "", fmt.Errorf("build.ImportDir: path=%s: %w", path, err)
 	}
 
 	if pkg.ImportPath == "." {
 		// If ImportPath is ".", it means the directory is not in GOPATH or inside a module
-		// In this case, we'll use the last directory name as the package path
-		return filepath.Base(absDir), nil
+		return "", fmt.Errorf("path=%s: %w", absDir, apperr.ErrFailedToDetectPackageImportPath)
 	}
 
 	return pkg.ImportPath, nil

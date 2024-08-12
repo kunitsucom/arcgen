@@ -7,7 +7,7 @@ import (
 )
 
 func loadGoMethodNameColumns(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionGoMethodNameColumns)
+	v, _ := cmd.GetOptionString(OptionGoMethodNameColumns)
 	return v
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 func loadGoSliceTypeSuffix(_ context.Context, cmd *cliz.Command) string {
-	v, _ := cmd.GetOptionString(_OptionGoSliceTypeSuffix)
+	v, _ := cmd.GetOptionString(OptionGoSliceTypeSuffix)
 	return v
 }
 
