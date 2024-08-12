@@ -70,7 +70,7 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 				defer f.Close()
 				crudFiles = append(crudFiles, filename)
 
-				if err := fprintCRUD(
+				if err := fprintORM(
 					f,
 					bytes.NewBuffer(nil),
 					arcSrcSet,
@@ -91,7 +91,7 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 			}
 			defer f.Close()
 
-			if err := fprintCRUDCommon(f, bytes.NewBuffer(nil), arcSrcSetSlice, crudFiles); err != nil {
+			if err := fprintORMCommon(f, bytes.NewBuffer(nil), arcSrcSetSlice, crudFiles); err != nil {
 				return errorz.Errorf("sprint: %w", err)
 			}
 

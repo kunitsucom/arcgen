@@ -16,10 +16,10 @@ import (
 	"github.com/kunitsucom/arcgen/internal/config"
 )
 
-func fprintCRUDCommon(osFile osFile, buf buffer, arcSrcSetSlice ARCSourceSetSlice, crudFiles []string) error {
-	content, err := generateCRUDCommonFileContent(buf, arcSrcSetSlice, crudFiles)
+func fprintORMCommon(osFile osFile, buf buffer, arcSrcSetSlice ARCSourceSetSlice, crudFiles []string) error {
+	content, err := generateORMCommonFileContent(buf, arcSrcSetSlice, crudFiles)
 	if err != nil {
-		return errorz.Errorf("generateCRUDCommonFileContent: %w", err)
+		return errorz.Errorf("generateORMCommonFileContent: %w", err)
 	}
 
 	// write to file
@@ -37,7 +37,7 @@ const (
 )
 
 //nolint:cyclop,funlen,gocognit,maintidx
-func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice, crudFiles []string) (string, error) {
+func generateORMCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice, crudFiles []string) (string, error) {
 	astFile := &ast.File{
 		// package
 		Name: &ast.Ident{
@@ -84,9 +84,10 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 	)
 
 	//	type QueryerContext interface {
+	//		ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	//		PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
 	//		QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
 	//		QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
-	//		ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 	//	}
 	astFile.Decls = append(astFile.Decls,
 		&ast.GenDecl{
@@ -96,58 +97,69 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 					// Assign: token.Pos(1),
 					Name: &ast.Ident{Name: queryerContextTypeName},
 					Type: &ast.InterfaceType{
-						Methods: &ast.FieldList{
-							List: []*ast.Field{
-								{
-									Names: []*ast.Ident{{Name: "QueryContext"}},
-									Type: &ast.FuncType{
-										Params: &ast.FieldList{List: []*ast.Field{
-											{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
-											{Names: []*ast.Ident{{Name: "query"}}, Type: &ast.Ident{Name: "string"}},
-											{Names: []*ast.Ident{{Name: "args"}}, Type: &ast.Ellipsis{Elt: &ast.Ident{Name: "interface{}"}}},
-										}},
-										Results: &ast.FieldList{List: []*ast.Field{
-											{Type: &ast.StarExpr{X: &ast.SelectorExpr{X: &ast.Ident{Name: "sql"}, Sel: &ast.Ident{Name: "Rows"}}}},
-											{Type: &ast.Ident{Name: "error"}},
-										}},
-									},
-								},
-								{
-									Names: []*ast.Ident{{Name: "QueryRowContext"}},
-									Type: &ast.FuncType{
-										Params: &ast.FieldList{List: []*ast.Field{
-											{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
-											{Names: []*ast.Ident{{Name: "query"}}, Type: &ast.Ident{Name: "string"}},
-											{Names: []*ast.Ident{{Name: "args"}}, Type: &ast.Ellipsis{Elt: &ast.Ident{Name: "interface{}"}}},
-										}},
-										Results: &ast.FieldList{List: []*ast.Field{
-											{Type: &ast.StarExpr{X: &ast.SelectorExpr{X: &ast.Ident{Name: "sql"}, Sel: &ast.Ident{Name: "Row"}}}},
-										}},
-									},
-								},
-								{
-									Names: []*ast.Ident{{Name: "ExecContext"}},
-									Type: &ast.FuncType{
-										Params: &ast.FieldList{List: []*ast.Field{
-											{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
-											{Names: []*ast.Ident{{Name: "query"}}, Type: &ast.Ident{Name: "string"}},
-											{Names: []*ast.Ident{{Name: "args"}}, Type: &ast.Ellipsis{Elt: &ast.Ident{Name: "interface{}"}}},
-										}},
-										Results: &ast.FieldList{List: []*ast.Field{
-											{Type: &ast.SelectorExpr{X: &ast.Ident{Name: "sql"}, Sel: &ast.Ident{Name: "Result"}}},
-											{Type: &ast.Ident{Name: "error"}},
-										}},
-									},
+						Methods: &ast.FieldList{List: []*ast.Field{
+							{
+								Names: []*ast.Ident{{Name: "ExecContext"}},
+								Type: &ast.FuncType{
+									Params: &ast.FieldList{List: []*ast.Field{
+										{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
+										{Names: []*ast.Ident{{Name: "query"}}, Type: &ast.Ident{Name: "string"}},
+										{Names: []*ast.Ident{{Name: "args"}}, Type: &ast.Ellipsis{Elt: &ast.Ident{Name: "interface{}"}}},
+									}},
+									Results: &ast.FieldList{List: []*ast.Field{
+										{Type: &ast.SelectorExpr{X: &ast.Ident{Name: "sql"}, Sel: &ast.Ident{Name: "Result"}}},
+										{Type: &ast.Ident{Name: "error"}},
+									}},
 								},
 							},
-						},
+							{
+								Names: []*ast.Ident{{Name: "PrepareContext"}},
+								Type: &ast.FuncType{
+									Params: &ast.FieldList{List: []*ast.Field{
+										{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
+										{Names: []*ast.Ident{{Name: "query"}}, Type: &ast.Ident{Name: "string"}},
+									}},
+									Results: &ast.FieldList{List: []*ast.Field{
+										{Type: &ast.StarExpr{X: &ast.SelectorExpr{X: &ast.Ident{Name: "sql"}, Sel: &ast.Ident{Name: "Stmt"}}}},
+										{Type: &ast.Ident{Name: "error"}},
+									}},
+								},
+							},
+							{
+								Names: []*ast.Ident{{Name: "QueryContext"}},
+								Type: &ast.FuncType{
+									Params: &ast.FieldList{List: []*ast.Field{
+										{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
+										{Names: []*ast.Ident{{Name: "query"}}, Type: &ast.Ident{Name: "string"}},
+										{Names: []*ast.Ident{{Name: "args"}}, Type: &ast.Ellipsis{Elt: &ast.Ident{Name: "interface{}"}}},
+									}},
+									Results: &ast.FieldList{List: []*ast.Field{
+										{Type: &ast.StarExpr{X: &ast.SelectorExpr{X: &ast.Ident{Name: "sql"}, Sel: &ast.Ident{Name: "Rows"}}}},
+										{Type: &ast.Ident{Name: "error"}},
+									}},
+								},
+							},
+							{
+								Names: []*ast.Ident{{Name: "QueryRowContext"}},
+								Type: &ast.FuncType{
+									Params: &ast.FieldList{List: []*ast.Field{
+										{Names: []*ast.Ident{{Name: "ctx"}}, Type: &ast.Ident{Name: "context.Context"}},
+										{Names: []*ast.Ident{{Name: "query"}}, Type: &ast.Ident{Name: "string"}},
+										{Names: []*ast.Ident{{Name: "args"}}, Type: &ast.Ellipsis{Elt: &ast.Ident{Name: "interface{}"}}},
+									}},
+									Results: &ast.FieldList{List: []*ast.Field{
+										{Type: &ast.StarExpr{X: &ast.SelectorExpr{X: &ast.Ident{Name: "sql"}, Sel: &ast.Ident{Name: "Row"}}}},
+									}},
+								},
+							},
+						}},
 					},
 				},
 			},
 		},
 	)
 
-	//	type _CRUD struct {
+	//	type _ORM struct {
 	//	}
 	astFile.Decls = append(astFile.Decls,
 		&ast.GenDecl{
@@ -221,7 +233,7 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 		},
 	)
 
-	//	type CRUD interface {
+	//	type ORM interface {
 	//		Create{StructName}(ctx context.Context, queryerContext QueryerContext, s *{Struct}) error
 	//		...
 	//	}
@@ -271,8 +283,8 @@ func generateCRUDCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice,
 		},
 	)
 
-	//	func NewCRUD() CRUD {
-	//		return &_CRUD{}
+	//	func NewORM() ORM {
+	//		return &_ORM{}
 	//	}
 	astFile.Decls = append(astFile.Decls,
 		&ast.FuncDecl{

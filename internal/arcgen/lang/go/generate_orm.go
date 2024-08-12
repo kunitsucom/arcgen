@@ -16,10 +16,10 @@ import (
 	"github.com/kunitsucom/arcgen/pkg/errors"
 )
 
-func fprintCRUD(osFile osFile, buf buffer, arcSrcSet *ARCSourceSet) error {
-	content, err := generateCRUDFileContent(buf, arcSrcSet)
+func fprintORM(osFile osFile, buf buffer, arcSrcSet *ARCSourceSet) error {
+	content, err := generateORMFileContent(buf, arcSrcSet)
 	if err != nil {
-		return errorz.Errorf("generateCRUDFileContent: %w", err)
+		return errorz.Errorf("generateORMFileContent: %w", err)
 	}
 
 	// write to file
@@ -31,7 +31,7 @@ func fprintCRUD(osFile osFile, buf buffer, arcSrcSet *ARCSourceSet) error {
 }
 
 //nolint:funlen
-func generateCRUDFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error) {
+func generateORMFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error) {
 	if arcSrcSet == nil || arcSrcSet.PackageName == "" {
 		return "", errors.ErrInvalidSourceSet
 	}
