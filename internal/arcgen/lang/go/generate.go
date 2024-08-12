@@ -57,23 +57,7 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 	if config.GenerateGoCRUDPackage() {
 		crudFileExt := ".crud" + genFileExt
 
-		if err := func() error {
-			filename := filepath.Join(config.GoCRUDPackagePath(), "common"+crudFileExt)
-			f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rw_r__r__)
-			if err != nil {
-				return errorz.Errorf("os.OpenFile: %w", err)
-			}
-			defer f.Close()
-
-			if err := fprintCRUDCommon(f, bytes.NewBuffer(nil), arcSrcSetSlice); err != nil {
-				return errorz.Errorf("sprint: %w", err)
-			}
-
-			return nil
-		}(); err != nil {
-			return errorz.Errorf("f: %w", err)
-		}
-
+		crudFiles := make([]string, 0)
 		for _, arcSrcSet := range arcSrcSetSlice {
 			// closure for defer
 			if err := func() error {
@@ -84,7 +68,7 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 					return errorz.Errorf("os.OpenFile: %w", err)
 				}
 				defer f.Close()
-				f.Name()
+				crudFiles = append(crudFiles, filename)
 
 				if err := fprintCRUD(
 					f,
@@ -97,6 +81,23 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 			}(); err != nil {
 				return errorz.Errorf("f: %w", err)
 			}
+		}
+
+		if err := func() error {
+			filename := filepath.Join(config.GoCRUDPackagePath(), "common"+crudFileExt)
+			f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rw_r__r__)
+			if err != nil {
+				return errorz.Errorf("os.OpenFile: %w", err)
+			}
+			defer f.Close()
+
+			if err := fprintCRUDCommon(f, bytes.NewBuffer(nil), arcSrcSetSlice, crudFiles); err != nil {
+				return errorz.Errorf("sprint: %w", err)
+			}
+
+			return nil
+		}(); err != nil {
+			return errorz.Errorf("f: %w", err)
 		}
 	}
 

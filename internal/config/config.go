@@ -19,11 +19,13 @@ type config struct {
 	Version  bool   `json:"version"`
 	Trace    bool   `json:"trace"`
 	Debug    bool   `json:"debug"`
+	Dialect  string `json:"dialect"`
 	Language string `json:"language"`
 	// Golang
 	GoColumnTag          string `json:"go_column_tag"`
 	GoCRUDPackagePath    string `json:"go_crud_package_path"`
 	GoCRUDPackageName    string `json:"go_crud_package_name"`
+	GoCRUDTypeName       string `json:"go_crud_type_name"`
 	GoHasManyTag         string `json:"go_has_many_tag"`
 	GoHasOneTag          string `json:"go_has_one_tag"`
 	GoMethodNameTable    string `json:"go_method_name_table"`
@@ -78,6 +80,9 @@ const (
 	_OptionDebug = "debug"
 	_EnvKeyDebug = "ARCGEN_DEBUG"
 
+	_OptionDialect = "dialect"
+	_EnvKeyDialect = "ARCGEN_DIALECT"
+
 	_OptionLanguage = "lang"
 	_EnvKeyLanguage = "ARCGEN_LANGUAGE"
 
@@ -91,6 +96,9 @@ const (
 
 	_OptionGoCRUDPackageName = "go-crud-package-name"
 	_EnvKeyGoCRUDPackageName = "ARCGEN_GO_CRUD_PACKAGE_NAME"
+
+	_OptionGoCRUDTypeName = "go-crud-type-name"
+	_EnvKeyGoCRUDTypeName = "ARCGEN_GO_CRUD_TYPE_NAME"
 
 	_OptionGoHasManyTag = "go-has-many-tag"
 	_EnvKeyGoHasManyTag = "ARCGEN_GO_HAS_MANY_TAG"
@@ -139,6 +147,11 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 				Default:     cliz.Default(false),
 			},
 			&cliz.StringOption{
+				Name: _OptionDialect, Environment: _EnvKeyDialect,
+				Description: "dialect for DML",
+				Default:     cliz.Default("postgres"),
+			},
+			&cliz.StringOption{
 				Name: _OptionLanguage, Environment: _EnvKeyLanguage,
 				Description: "programming language to generate DDL",
 				Default:     cliz.Default("go"),
@@ -158,6 +171,11 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 				Name: _OptionGoCRUDPackageName, Environment: _EnvKeyGoCRUDPackageName,
 				Description: "package name for CRUD",
 				Default:     cliz.Default(""),
+			},
+			&cliz.StringOption{
+				Name: _OptionGoCRUDTypeName, Environment: _EnvKeyGoCRUDTypeName,
+				Description: "type name for CRUD",
+				Default:     cliz.Default("CRUD"),
 			},
 			&cliz.StringOption{
 				Name: _OptionGoHasManyTag, Environment: _EnvKeyGoHasManyTag,
@@ -206,11 +224,13 @@ func load(ctx context.Context) (cfg *config, remainingArgs []string, err error) 
 		Version:  loadVersion(ctx, cmd),
 		Trace:    loadTrace(ctx, cmd),
 		Debug:    loadDebug(ctx, cmd),
+		Dialect:  loadDialect(ctx, cmd),
 		Language: loadLanguage(ctx, cmd),
 		// Golang
 		GoColumnTag:          loadGoColumnTag(ctx, cmd),
 		GoCRUDPackagePath:    loadGoCRUDPackagePath(ctx, cmd),
 		GoCRUDPackageName:    loadGoCRUDPackageName(ctx, cmd),
+		GoCRUDTypeName:       loadGoCRUDTypeName(ctx, cmd),
 		GoHasManyTag:         loadGoHasManyTag(ctx, cmd),
 		GoHasOneTag:          loadGoHasOneTag(ctx, cmd),
 		GoMethodNameTable:    loadGoMethodNameTable(ctx, cmd),
