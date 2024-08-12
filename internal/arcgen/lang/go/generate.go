@@ -55,20 +55,20 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 	}
 
 	if config.GenerateGoORMPackage() {
-		crudFileExt := ".crud" + genFileExt
+		ormFileExt := ".orm" + genFileExt
 
-		crudFiles := make([]string, 0)
+		ormFiles := make([]string, 0)
 		for _, arcSrcSet := range arcSrcSetSlice {
 			// closure for defer
 			if err := func() error {
 				filePathWithoutExt := strings.TrimSuffix(filepath.Base(arcSrcSet.Filename), fileExt)
-				filename := filepath.Join(config.GoORMOutputPath(), filePathWithoutExt+crudFileExt)
+				filename := filepath.Join(config.GoORMOutputPath(), filePathWithoutExt+ormFileExt)
 				f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rw_r__r__)
 				if err != nil {
 					return errorz.Errorf("os.OpenFile: %w", err)
 				}
 				defer f.Close()
-				crudFiles = append(crudFiles, filename)
+				ormFiles = append(ormFiles, filename)
 
 				if err := fprintORM(
 					f,
@@ -84,14 +84,14 @@ func generate(arcSrcSetSlice ARCSourceSetSlice) error {
 		}
 
 		if err := func() error {
-			filename := filepath.Join(config.GoORMOutputPath(), "common"+crudFileExt)
+			filename := filepath.Join(config.GoORMOutputPath(), "common"+ormFileExt)
 			f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, rw_r__r__)
 			if err != nil {
 				return errorz.Errorf("os.OpenFile: %w", err)
 			}
 			defer f.Close()
 
-			if err := fprintORMCommon(f, bytes.NewBuffer(nil), arcSrcSetSlice, crudFiles); err != nil {
+			if err := fprintORMCommon(f, bytes.NewBuffer(nil), arcSrcSetSlice, ormFiles); err != nil {
 				return errorz.Errorf("sprint: %w", err)
 			}
 

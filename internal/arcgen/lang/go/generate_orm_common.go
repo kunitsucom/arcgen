@@ -25,8 +25,8 @@ const (
 	readManyFuncPrefix     = "List"
 )
 
-func fprintORMCommon(osFile osFile, buf buffer, arcSrcSetSlice ARCSourceSetSlice, crudFiles []string) error {
-	content, err := generateORMCommonFileContent(buf, arcSrcSetSlice, crudFiles)
+func fprintORMCommon(osFile osFile, buf buffer, arcSrcSetSlice ARCSourceSetSlice, ormFiles []string) error {
+	content, err := generateORMCommonFileContent(buf, arcSrcSetSlice, ormFiles)
 	if err != nil {
 		return errorz.Errorf("generateORMCommonFileContent: %w", err)
 	}
@@ -40,7 +40,7 @@ func fprintORMCommon(osFile osFile, buf buffer, arcSrcSetSlice ARCSourceSetSlice
 }
 
 //nolint:cyclop,funlen,gocognit,maintidx
-func generateORMCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice, crudFiles []string) (string, error) {
+func generateORMCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice, ormFiles []string) (string, error) {
 	astFile := &ast.File{
 		// package
 		Name: &ast.Ident{
@@ -95,8 +95,8 @@ func generateORMCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice, 
 	//	}
 	methods := make([]*ast.Field, 0)
 	fset := token.NewFileSet()
-	for _, crudFile := range crudFiles {
-		rootNode, err := parser.ParseFile(fset, crudFile, nil, parser.ParseComments)
+	for _, ormFile := range ormFiles {
+		rootNode, err := parser.ParseFile(fset, ormFile, nil, parser.ParseComments)
 		if err != nil {
 			// MEMO: parser.ParseFile err contains file path, so no need to log it
 			return "", errorz.Errorf("parser.ParseFile: %w", err)
