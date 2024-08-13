@@ -8,7 +8,7 @@ import (
 	apperr "github.com/kunitsucom/arcgen/pkg/errors"
 )
 
-func GetPackageImportPath(path string) (string, error) {
+func DetectPackageImportPath(path string) (string, error) {
 	absDir, err := filepath.Abs(path)
 	if err != nil {
 		return "", fmt.Errorf("filepath.Abs: path=%s %w", path, err)

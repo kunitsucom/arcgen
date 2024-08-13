@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kunitsucom/arcgen/internal/arcgen/lang/util"
 	"github.com/kunitsucom/arcgen/internal/config"
 )
 
@@ -54,7 +55,7 @@ func whereColumnsPlaceholder(columns []string, op string, initialNumber int) str
 	switch config.Dialect() {
 	case "mysql", "sqlite3":
 		// column1 = ? AND column2 = ? AND column3 = ...
-		return strings.Join(columns, " = ? "+op+" ") + " = ?"
+		return util.JoinStringsWithQuote(columns, " = ? "+op+" ", quote) + " = ?"
 	case "postgres", "cockroach":
 		// column1 = $1 AND column2 = $2 AND column3 = ...
 		var s strings.Builder
@@ -62,7 +63,7 @@ func whereColumnsPlaceholder(columns []string, op string, initialNumber int) str
 			if i > 0 {
 				s.WriteString(" " + op + " ")
 			}
-			s.WriteString(column)
+			s.WriteString(util.QuoteString(column, quote))
 			s.WriteString(" = $")
 			s.WriteString(strconv.Itoa(i + initialNumber))
 		}
@@ -74,7 +75,7 @@ func whereColumnsPlaceholder(columns []string, op string, initialNumber int) str
 			if i > 0 {
 				s.WriteString(" " + op + " ")
 			}
-			s.WriteString(column)
+			s.WriteString(util.QuoteString(column, quote))
 			s.WriteString(" = @")
 			s.WriteString(column)
 		}
@@ -86,13 +87,13 @@ func whereColumnsPlaceholder(columns []string, op string, initialNumber int) str
 			if i > 0 {
 				s.WriteString(" " + op + " ")
 			}
-			s.WriteString(column)
+			s.WriteString(util.QuoteString(column, quote))
 			s.WriteString(" = :")
 			s.WriteString(column)
 		}
 		return s.String()
 	default:
 		// column1 = ? AND column2 = ? AND column3 = ...
-		return strings.Join(columns, " = ? "+op+" ") + " = ?"
+		return util.JoinStringsWithQuote(columns, " = ? "+op+" ", quote) + " = ?"
 	}
 }

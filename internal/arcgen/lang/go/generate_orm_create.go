@@ -4,8 +4,8 @@ import (
 	"go/ast"
 	"go/token"
 	"strconv"
-	"strings"
 
+	"github.com/kunitsucom/arcgen/internal/arcgen/lang/util"
 	"github.com/kunitsucom/arcgen/internal/config"
 )
 
@@ -27,7 +27,7 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 			//		}
 			//		return nil
 			//	}
-			funcName := "Create" + structName
+			funcName := createFuncPrefix + structName
 			queryName := funcName + "Query"
 			astFile.Decls = append(astFile.Decls,
 				&ast.GenDecl{
@@ -37,7 +37,7 @@ func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 							Names: []*ast.Ident{{Name: queryName}},
 							Values: []ast.Expr{&ast.BasicLit{
 								Kind:  token.STRING,
-								Value: "`INSERT INTO " + tableName + " (" + strings.Join(columnNames, ", ") + ") VALUES (" + columnValuesPlaceholder(columnNames, 1) + ")`",
+								Value: "`INSERT INTO " + tableName + " (" + util.JoinStringsWithQuote(columnNames, ", ", `"`) + ") VALUES (" + columnValuesPlaceholder(columnNames, 1) + ")`",
 							}},
 						},
 					},

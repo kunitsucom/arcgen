@@ -25,7 +25,7 @@ func generateDELETEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 			//		}
 			//		return nil
 			//	}
-			funcName := "Delete" + structName + "ByPK"
+			funcName := deleteFuncPrefix + structName + "ByPK"
 			queryName := funcName + "Query"
 			pkColumns := tableInfo.Columns.PrimaryKeys()
 			pkColumnNames := func() (pkColumnNames []string) {
@@ -140,7 +140,7 @@ func generateDELETEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 				//		}
 				//		return nil
 				//	}
-				byHasManyTagFuncName := "Delete" + structName + "By" + hasManyTag
+				byHasManyTagFuncName := deleteFuncPrefix + structName + "By" + hasManyTag
 				byHasManyTagQueryName := byHasManyTagFuncName + "Query"
 				hasManyColumns := hasManyColumnsByTag[hasManyTag]
 				astFile.Decls = append(astFile.Decls,

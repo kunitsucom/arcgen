@@ -4,7 +4,6 @@ import (
 	"go/ast"
 	"go/token"
 	"strconv"
-	"strings"
 
 	"github.com/kunitsucom/arcgen/internal/arcgen/lang/util"
 	"github.com/kunitsucom/arcgen/internal/config"
@@ -43,7 +42,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 							Names: []*ast.Ident{{Name: byPKQueryName}},
 							Values: []ast.Expr{&ast.BasicLit{
 								Kind:  token.STRING,
-								Value: "`SELECT " + strings.Join(columnNames, ", ") + " FROM " + tableName + " WHERE " + whereColumnsPlaceholder(pks.ColumnNames(), "AND", 1) + "`",
+								Value: "`SELECT " + util.JoinStringsWithQuote(columnNames, ", ", `"`) + " FROM " + tableName + " WHERE " + whereColumnsPlaceholder(pks.ColumnNames(), "AND", 1) + "`",
 							}},
 						},
 					},
@@ -192,7 +191,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 								Names: []*ast.Ident{{Name: byHasOneTagQueryName}},
 								Values: []ast.Expr{&ast.BasicLit{
 									Kind:  token.STRING,
-									Value: "`SELECT " + strings.Join(columnNames, ", ") + " FROM " + tableName + " WHERE " + whereColumnsPlaceholder(hasOneColumns.ColumnNames(), "AND", 1) + "`",
+									Value: "`SELECT " + util.JoinStringsWithQuote(columnNames, ", ", `"`) + " FROM " + tableName + " WHERE " + whereColumnsPlaceholder(hasOneColumns.ColumnNames(), "AND", 1) + "`",
 								}},
 							},
 						},
@@ -359,7 +358,7 @@ func generateREADContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 								Names: []*ast.Ident{{Name: byHasOneTagQueryName}},
 								Values: []ast.Expr{&ast.BasicLit{
 									Kind:  token.STRING,
-									Value: "`SELECT " + strings.Join(columnNames, ", ") + " FROM " + tableName + " WHERE " + whereColumnsPlaceholder(hasManyColumns.ColumnNames(), "AND", 1) + "`",
+									Value: "`SELECT " + util.JoinStringsWithQuote(columnNames, ", ", `"`) + " FROM " + tableName + " WHERE " + whereColumnsPlaceholder(hasManyColumns.ColumnNames(), "AND", 1) + "`",
 								}},
 							},
 						},
