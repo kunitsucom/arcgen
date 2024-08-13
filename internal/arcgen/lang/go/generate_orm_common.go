@@ -16,15 +16,6 @@ import (
 	"github.com/kunitsucom/arcgen/internal/config"
 )
 
-const (
-	importName             = "orm"
-	receiverName           = "_orm"
-	queryerContextVarName  = "dbtx"
-	queryerContextTypeName = "DBTX"
-	readOneFuncPrefix      = "Get"
-	readManyFuncPrefix     = "List"
-)
-
 func fprintORMCommon(osFile osFile, buf buffer, arcSrcSetSlice ARCSourceSetSlice, ormFiles []string) error {
 	content, err := generateORMCommonFileContent(buf, arcSrcSetSlice, ormFiles)
 	if err != nil {
@@ -55,7 +46,7 @@ func generateORMCommonFileContent(buf buffer, arcSrcSetSlice ARCSourceSetSlice, 
 	structPackageImportPath := config.GoORMStructPackageImportPath()
 	if structPackageImportPath == "" {
 		var err error
-		structPackageImportPath, err = util.GetPackageImportPath(filepath.Dir(arcSrcSetSlice[0].Filename))
+		structPackageImportPath, err = util.DetectPackageImportPath(filepath.Dir(arcSrcSetSlice[0].Filename))
 		if err != nil {
 			return "", errorz.Errorf("GetPackagePath: %w", err)
 		}

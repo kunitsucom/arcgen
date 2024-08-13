@@ -47,7 +47,7 @@ func generateORMFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error)
 	structPackageImportPath := config.GoORMStructPackageImportPath()
 	if structPackageImportPath == "" {
 		var err error
-		structPackageImportPath, err = util.GetPackageImportPath(filepath.Dir(arcSrcSet.Filename))
+		structPackageImportPath, err = util.DetectPackageImportPath(filepath.Dir(arcSrcSet.Filename))
 		if err != nil {
 			return "", errorz.Errorf("GetPackagePath: %w", err)
 		}

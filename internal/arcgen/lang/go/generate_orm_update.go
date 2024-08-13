@@ -4,8 +4,8 @@ import (
 	"go/ast"
 	"go/token"
 	"strconv"
-	"strings"
 
+	"github.com/kunitsucom/arcgen/internal/arcgen/lang/util"
 	"github.com/kunitsucom/arcgen/internal/config"
 )
 
@@ -25,7 +25,7 @@ func generateUPDATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 			//		}
 			//		return nil
 			//	}
-			funcName := "Update" + structName
+			funcName := updateFuncPrefix + structName
 			queryName := funcName + "Query"
 			pkColumns := tableInfo.Columns.PrimaryKeys()
 			nonPKColumns := tableInfo.Columns.NonPrimaryKeys()
@@ -43,7 +43,7 @@ func generateUPDATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
 							Names: []*ast.Ident{{Name: queryName}},
 							Values: []ast.Expr{&ast.BasicLit{
 								Kind:  token.STRING,
-								Value: "`UPDATE " + tableName + " SET (" + strings.Join(nonPKColumnNames, ", ") + ") = (" + columnValuesPlaceholder(nonPKColumnNames, 1) + ") WHERE " + whereColumnsPlaceholder(pkColumns.ColumnNames(), "AND", len(nonPKColumnNames)+1) + "`",
+								Value: "`UPDATE " + tableName + " SET (" + util.JoinStringsWithQuote(nonPKColumnNames, ", ", `"`) + ") = (" + columnValuesPlaceholder(nonPKColumnNames, 1) + ") WHERE " + whereColumnsPlaceholder(pkColumns.ColumnNames(), "AND", len(nonPKColumnNames)+1) + "`",
 							}},
 						},
 					},
