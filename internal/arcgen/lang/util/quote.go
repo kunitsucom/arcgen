@@ -17,5 +17,13 @@ func JoinStringsWithQuote(ss []string, sep string, quote string) string {
 		return QuoteString(ss[0], quote)
 	}
 
-	return quote + strings.Join(ss, quote+sep+quote) + quote
+	var builder strings.Builder
+	for i, s := range ss {
+		if i > 0 {
+			builder.WriteString(sep)
+		}
+		builder.WriteString(QuoteString(s, quote))
+	}
+
+	return builder.String()
 }
