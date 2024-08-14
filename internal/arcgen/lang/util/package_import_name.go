@@ -21,7 +21,7 @@ func DetectPackageImportPath(path string) (string, error) {
 
 	if pkg.ImportPath == "." {
 		// If ImportPath is ".", it means the directory is not in GOPATH or inside a module
-		return "", fmt.Errorf("path=%s: %w", absDir, apperr.ErrFailedToDetectPackageImportPath)
+		return "", fmt.Errorf("path=%s: pkg=%#v: %w", absDir, *pkg, apperr.ErrFailedToDetectPackageImportPath)
 	}
 
 	return pkg.ImportPath, nil
