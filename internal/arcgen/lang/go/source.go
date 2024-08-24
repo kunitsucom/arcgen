@@ -18,7 +18,7 @@ import (
 )
 
 type (
-	ARCSource struct {
+	StructSource struct {
 		// Source for sorting
 		Source token.Position
 		// TypeSpec is used to guess the table name if the CREATE TABLE annotation is not found.
@@ -27,13 +27,19 @@ type (
 		StructType   *ast.StructType
 		CommentGroup *ast.CommentGroup
 	}
-	ARCSourceSet struct {
-		Source         token.Position
-		Filename       string
-		PackageName    string
-		ARCSourceSlice []*ARCSource
+	FileSource struct {
+		Source            token.Position
+		Filename          string
+		PackageName       string
+		StructSourceSlice []*StructSource
 	}
-	ARCSourceSetSlice []*ARCSourceSet
+	PackageSource struct {
+		PackageName                string
+		PackageImportPath          string
+		RelativePathFromSourcePath string
+		FileSourceSlice            []*FileSource
+	}
+	PackageSourceSlice []*PackageSource
 )
 
 //nolint:gochecknoglobals
@@ -57,11 +63,11 @@ func GoColumnTagCommentLineRegex() *regexp.Regexp {
 	return _GoColumnTagCommentLineRegex
 }
 
-func (a *ARCSource) extractStructName() string {
+func (a *StructSource) extractStructName() string {
 	return a.TypeSpec.Name.Name
 }
 
-func (a *ARCSource) extractTableNameFromCommentGroup() string {
+func (a *StructSource) extractTableNameFromCommentGroup() string {
 	if a.CommentGroup != nil {
 		for _, comment := range a.CommentGroup.List {
 			if matches := util.RegexIndexTableName.Regex.FindStringSubmatch(comment.Text); len(matches) > util.RegexIndexTableName.Index {
@@ -166,7 +172,7 @@ func fieldName(x ast.Expr) *ast.Ident {
 }
 
 //nolint:cyclop
-func (a *ARCSource) extractFieldNamesAndColumnNames() *TableInfo {
+func (a *StructSource) extractFieldNamesAndColumnNames() *TableInfo {
 	tableInfo := &TableInfo{
 		Columns: make([]*ColumnInfo, 0, len(a.StructType.Fields.List)),
 	}
@@ -222,7 +228,7 @@ func (a *ARCSource) extractFieldNamesAndColumnNames() *TableInfo {
 	return tableInfo
 }
 
-func (ss *ARCSourceSet) generateGoFileHeader() string {
+func (ss *FileSource) generateGoFileHeader() string {
 	return generateGoFileHeader() +
 		"// source: " + filepathz.Short(ss.Source.Filename) + "\n"
 }

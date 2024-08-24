@@ -45,9 +45,9 @@ func Test_generate(t *testing.T) {
 		}())
 
 		arcSrcSets := ARCSourceSetSlice{
-			&ARCSourceSet{
+			&FileSource{
 				Filename: "tests/invalid-source-set",
-				ARCSourceSlice: []*ARCSource{
+				StructSourceSlice: []*StructSource{
 					nil,
 				},
 			},
@@ -60,10 +60,10 @@ func Test_generate(t *testing.T) {
 	})
 }
 
-func newTestARCSourceSet() *ARCSourceSet {
-	return &ARCSourceSet{
+func newTestARCSourceSet() *FileSource {
+	return &FileSource{
 		PackageName: "testpkg",
-		ARCSourceSlice: []*ARCSource{
+		StructSourceSlice: []*StructSource{
 			{
 				TypeSpec: &goast.TypeSpec{
 					Name: &goast.Ident{

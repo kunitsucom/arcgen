@@ -10,8 +10,8 @@ import (
 )
 
 //nolint:funlen
-func generateCREATEContent(astFile *ast.File, arcSrcSet *ARCSourceSet) {
-	for _, arcSrc := range arcSrcSet.ARCSourceSlice {
+func generateCREATEContent(astFile *ast.File, arcSrcSet *FileSource) {
+	for _, arcSrc := range arcSrcSet.StructSourceSlice {
 		structName := arcSrc.extractStructName()
 		tableName := arcSrc.extractTableNameFromCommentGroup()
 		tableInfo := arcSrc.extractFieldNamesAndColumnNames()

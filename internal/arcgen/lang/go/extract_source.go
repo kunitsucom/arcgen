@@ -18,9 +18,9 @@ import (
 )
 
 //nolint:cyclop,funlen,gocognit
-func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCSourceSet, error) {
+func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*FileSource, error) {
 	// NOTE: Use map to avoid duplicate entries.
-	arcSrcMap := make(map[string]*ARCSource)
+	arcSrcMap := make(map[string]*StructSource)
 
 	goast.Inspect(f, func(node goast.Node) bool {
 		switch n := node.(type) {
@@ -32,7 +32,7 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 				if hasGoColumnTag(t) {
 					pos := fset.Position(structType.Pos())
 					logs.Debug.Printf("🔍: %s: type=%s", pos.String(), n.Name.Name)
-					arcSrcMap[pos.String()] = &ARCSource{
+					arcSrcMap[pos.String()] = &StructSource{
 						Source:     pos,
 						TypeSpec:   typeSpec,
 						StructType: structType,
@@ -66,7 +66,7 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 								if hasGoColumnTag(t) {
 									pos := fset.Position(structType.Pos())
 									logs.Debug.Printf("🖋️: %s: overwrite with comment group: type=%s", fset.Position(t.Pos()).String(), n.Name.Name)
-									arcSrcMap[pos.String()] = &ARCSource{
+									arcSrcMap[pos.String()] = &StructSource{
 										Source:       pos,
 										TypeSpec:     typeSpec,
 										StructType:   structType,
@@ -86,24 +86,24 @@ func extractSource(_ context.Context, fset *token.FileSet, f *goast.File) (*ARCS
 		}
 	}
 
-	arcSrcSet := &ARCSourceSet{
-		Filename:       fset.Position(f.Pos()).Filename,
-		PackageName:    f.Name.Name,
-		Source:         fset.Position(f.Pos()),
-		ARCSourceSlice: make([]*ARCSource, 0),
+	arcSrcSet := &FileSource{
+		Filename:          fset.Position(f.Pos()).Filename,
+		PackageName:       f.Name.Name,
+		Source:            fset.Position(f.Pos()),
+		StructSourceSlice: make([]*StructSource, 0),
 	}
 
 	for _, arcSrc := range arcSrcMap {
-		arcSrcSet.ARCSourceSlice = append(arcSrcSet.ARCSourceSlice, arcSrc)
+		arcSrcSet.StructSourceSlice = append(arcSrcSet.StructSourceSlice, arcSrc)
 	}
 
-	if len(arcSrcSet.ARCSourceSlice) == 0 {
+	if len(arcSrcSet.StructSourceSlice) == 0 {
 		return nil, errorz.Errorf("go-column-tag=%s: %w", config.GoColumnTag(), apperr.ErrGoColumnTagAnnotationNotFoundInSource)
 	}
 
-	sort.Slice(arcSrcSet.ARCSourceSlice, func(i, j int) bool {
-		return fmt.Sprintf("%s:%07d", arcSrcSet.ARCSourceSlice[i].Source.Filename, arcSrcSet.ARCSourceSlice[i].Source.Line) <
-			fmt.Sprintf("%s:%07d", arcSrcSet.ARCSourceSlice[j].Source.Filename, arcSrcSet.ARCSourceSlice[j].Source.Line)
+	sort.Slice(arcSrcSet.StructSourceSlice, func(i, j int) bool {
+		return fmt.Sprintf("%s:%07d", arcSrcSet.StructSourceSlice[i].Source.Filename, arcSrcSet.StructSourceSlice[i].Source.Line) <
+			fmt.Sprintf("%s:%07d", arcSrcSet.StructSourceSlice[j].Source.Filename, arcSrcSet.StructSourceSlice[j].Source.Line)
 	})
 
 	return arcSrcSet, nil

@@ -9,9 +9,9 @@ import (
 	"github.com/kunitsucom/arcgen/internal/logs"
 )
 
-func dumpSource(fset *token.FileSet, arcSrcSet *ARCSourceSet) {
+func dumpSource(fset *token.FileSet, arcSrcSet *FileSource) {
 	if arcSrcSet != nil {
-		for _, arcSrc := range arcSrcSet.ARCSourceSlice {
+		for _, arcSrc := range arcSrcSet.StructSourceSlice {
 			logs.Trace.Print("== Source ================================================================================================================================")
 			_, _ = io.WriteString(logs.Trace.LineWriter("r.CommentGroup.Text: "), arcSrc.CommentGroup.Text())
 			logs.Trace.Print("-- CommentGroup --------------------------------------------------------------------------------------------------------------------------------")

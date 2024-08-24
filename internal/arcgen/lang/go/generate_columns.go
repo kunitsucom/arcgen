@@ -14,7 +14,7 @@ import (
 	"github.com/kunitsucom/arcgen/pkg/errors"
 )
 
-func fprintColumns(osFile osFile, buf buffer, arcSrcSet *ARCSourceSet) error {
+func fprintColumns(osFile osFile, buf buffer, arcSrcSet *FileSource) error {
 	content, err := generateColumnsFileContent(buf, arcSrcSet)
 	if err != nil {
 		return errorz.Errorf("generateColumnsFile: %w", err)
@@ -28,7 +28,7 @@ func fprintColumns(osFile osFile, buf buffer, arcSrcSet *ARCSourceSet) error {
 	return nil
 }
 
-func generateColumnsFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, error) {
+func generateColumnsFileContent(buf buffer, arcSrcSet *FileSource) (string, error) {
 	if arcSrcSet == nil || arcSrcSet.PackageName == "" {
 		return "", errors.ErrInvalidSourceSet
 	}
@@ -41,7 +41,7 @@ func generateColumnsFileContent(buf buffer, arcSrcSet *ARCSourceSet) (string, er
 		Decls: []ast.Decl{},
 	}
 
-	for _, arcSrc := range arcSrcSet.ARCSourceSlice {
+	for _, arcSrc := range arcSrcSet.StructSourceSlice {
 		structName := arcSrc.extractStructName()
 		tableName := arcSrc.extractTableNameFromCommentGroup()
 		columnInfos := arcSrc.extractFieldNamesAndColumnNames()

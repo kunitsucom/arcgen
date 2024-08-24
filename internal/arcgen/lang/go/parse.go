@@ -72,7 +72,7 @@ func walkDirFn(ctx context.Context, arcSrcSetSlice *ARCSourceSetSlice) func(path
 	}
 }
 
-func parseFile(ctx context.Context, filename string) (*ARCSourceSet, error) {
+func parseFile(ctx context.Context, filename string) (*FileSource, error) {
 	fset := token.NewFileSet()
 	rootNode, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
 	if err != nil {
