@@ -1,3 +1,5 @@
+# 🚧 Moved [https://github.com/hakadoriya/ormgen](https://github.com/hakadoriya/ormgen) 🚧
+
 # [arcgen](https://github.com/kunitsucom/arcgen)
 
 [![license](https://img.shields.io/github/license/kunitsucom/arcgen)](LICENSE)
